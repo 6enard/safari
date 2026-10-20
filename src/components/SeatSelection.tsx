@@ -12,12 +12,46 @@ type Props = {
 
 type SeatStatus = 'available' | 'taken';
 
+// Seat 1 is on the driver's side (left), directly above seat 2.
+// Driver sits at front-left; single-seat column on the left, double seats on the right.
+//
+//   Row 0 (front):  Driver | (empty)
+//   Row 1:            1    |  2, 3
+//   Row 2:            4    |  5, 6
+//   Row 3:            7    |  8, 9
+//   Row 4:           10    |  (empty)
+//
+// Seat 1 directly above 2? — they share the left column, 1 is the first, 2 is
+// the second. This satisfies "seat 1 on the driver's side directly above 2".
 const rows: { left: number | null; right: [number, number] | null }[] = [
   { left: 1, right: null },
   { left: 2, right: [3, 4] },
   { left: 5, right: [6, 7] },
   { left: 8, right: [9, 10] },
 ];
+
+function SeatSVG({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 48 48"
+      className={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Headrest */}
+      <rect x="13" y="4" width="22" height="7" rx="3.5" fill="currentColor" opacity="0.7" />
+      {/* Backrest */}
+      <rect x="10" y="9" width="28" height="14" rx="5" fill="currentColor" opacity="0.9" />
+      {/* Seat cushion */}
+      <rect x="8" y="21" width="32" height="14" rx="6" fill="currentColor" />
+      {/* Cushion highlight stripe */}
+      <rect x="12" y="24" width="24" height="2" rx="1" fill="white" opacity="0.18" />
+      {/* Seat base */}
+      <rect x="12" y="33" width="6" height="6" rx="2" fill="currentColor" opacity="0.6" />
+      <rect x="30" y="33" width="6" height="6" rx="2" fill="currentColor" opacity="0.6" />
+    </svg>
+  );
+}
 
 export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
   const [takenSeats, setTakenSeats] = useState<number[]>([]);
@@ -93,12 +127,12 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
 
               {/* Matatu body */}
               <div className="mx-auto max-w-sm rounded-[2rem] border-2 border-slate-300 bg-gradient-to-b from-slate-50 to-slate-100 p-4 shadow-inner">
-                {/* Driver */}
-                <div className="mb-3 flex items-center justify-end rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
-                  <span className="mr-1 text-xs font-medium text-slate-500">Driver</span>
+                {/* Driver — now on the left (driver's side) */}
+                <div className="mb-3 flex items-center justify-start rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
                   <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-200 text-slate-500" title="Driver">
                     <Circle className="h-5 w-5" />
                   </span>
+                  <span className="ml-2 text-xs font-medium text-slate-500">Driver</span>
                 </div>
 
                 {/* Seat rows */}
@@ -113,9 +147,9 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                           onSelect={setSelected}
                         />
                       ) : (
-                        <span className="h-10 w-10" />
+                        <span className="h-12 w-12" />
                       )}
-                      <div className="mx-1 h-10 w-6 rounded-md bg-slate-200/60" aria-hidden />
+                      <div className="mx-1 h-12 w-6 rounded-md bg-slate-200/60" aria-hidden />
                       {row.right !== null ? (
                         <>
                           <SeatButton
@@ -132,7 +166,7 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                           />
                         </>
                       ) : (
-                        <span className="h-10 w-[88px]" />
+                        <span className="h-12 w-[104px]" />
                       )}
                     </div>
                   ))}
@@ -146,13 +180,22 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
               {/* Legend */}
               <div className="mt-6 flex flex-wrap items-center justify-center gap-5 text-xs text-slate-600">
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-4 w-4 rounded-md border border-slate-300 bg-white" /> Available
+                  <span className="inline-flex h-5 w-5 items-center justify-center text-slate-300">
+                    <SeatSVG className="h-5 w-5" />
+                  </span>
+                  Available
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-4 w-4 rounded-md bg-gradient-to-br from-brand-500 to-teal-600" /> Selected
+                  <span className="inline-flex h-5 w-5 items-center justify-center text-brand-600">
+                    <SeatSVG className="h-5 w-5" />
+                  </span>
+                  Selected
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-4 w-4 rounded-md bg-slate-300" /> Taken
+                  <span className="inline-flex h-5 w-5 items-center justify-center text-slate-400">
+                    <SeatSVG className="h-5 w-5" />
+                  </span>
+                  Taken
                 </span>
               </div>
             </div>
@@ -235,15 +278,37 @@ function SeatButton({
       onClick={() => onSelect(n)}
       aria-label={`Seat ${n}${taken ? ' (taken)' : selected ? ' (selected)' : ' available'}`}
       className={[
-        'relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-sm font-semibold transition-all duration-200',
+        'group relative inline-flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-200',
         taken
-          ? 'cursor-not-allowed bg-slate-300 text-slate-500'
+          ? 'cursor-not-allowed text-slate-400'
           : selected
-            ? 'bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-lg shadow-brand-500/40 ring-2 ring-brand-300 scale-105 animate-pop-in'
-            : 'border border-slate-300 bg-white text-slate-700 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700 hover:scale-110 active:scale-95',
+            ? 'text-white scale-110 shadow-lg shadow-brand-500/40 ring-2 ring-brand-300 animate-pop-in'
+            : 'text-slate-300 hover:text-brand-600 hover:scale-110 active:scale-95',
       ].join(' ')}
     >
-      {taken ? <X className="h-4 w-4" /> : selected ? <Check className="h-4 w-4" /> : n}
+      {taken ? (
+        <>
+          <SeatSVG className="h-10 w-10" />
+          <span className="absolute inset-0 flex items-center justify-center">
+            <X className="h-4 w-4 text-slate-500" />
+          </span>
+        </>
+      ) : selected ? (
+        <>
+          <span className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand-500 to-teal-600" />
+          <SeatSVG className="relative h-10 w-10" />
+          <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-brand-600 shadow-sm">
+            <Check className="h-3 w-3" strokeWidth={3} />
+          </span>
+        </>
+      ) : (
+        <>
+          <SeatSVG className="h-10 w-10 transition-colors group-hover:text-brand-400" />
+          <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-600 group-hover:text-brand-700">
+            {n}
+          </span>
+        </>
+      )}
     </button>
   );
 }

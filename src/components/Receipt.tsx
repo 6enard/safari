@@ -4,7 +4,7 @@ import { db, type Booking, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
 
 type Props = {
-  bookingId: string;
+  bookingIds: string[];
   paymentRef: string;
   onDone: () => void;
 };
@@ -15,8 +15,8 @@ const methodIcon: Record<string, typeof Smartphone> = {
   Cash: Banknote,
 };
 
-export function Receipt({ bookingId, paymentRef, onDone }: Props) {
-  const [booking, setBooking] = useState<Booking | null>(null);
+export function Receipt({ bookingIds, paymentRef, onDone }: Props) {
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [departure, setDeparture] = useState<Departure | null>(null);
   const [route, setRoute] = useState<Route | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,14 +27,14 @@ export function Receipt({ bookingId, paymentRef, onDone }: Props) {
     (async () => {
       setLoading(true);
       try {
-        const result = await db.getBooking(bookingId);
+        const result = await db.getBookingsByRef(paymentRef);
         if (!active) return;
         if (!result) {
           setError('Booking not found');
           setLoading(false);
           return;
         }
-        setBooking(result.booking);
+        setBookings(result.bookings);
         setDeparture(result.departure);
         setRoute(result.route);
       } catch (e: any) {
@@ -46,7 +46,7 @@ export function Receipt({ bookingId, paymentRef, onDone }: Props) {
     return () => {
       active = false;
     };
-  }, [bookingId]);
+  }, [paymentRef]);
 
   if (loading) {
     return (
@@ -55,7 +55,7 @@ export function Receipt({ bookingId, paymentRef, onDone }: Props) {
       </div>
     );
   }
-  if (error || !booking || !departure || !route) {
+  if (error || !departure || !route || bookings.length === 0) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center animate-fade-in">
         <p className="text-red-600">{error ?? 'Could not load your receipt.'}</p>
@@ -69,7 +69,8 @@ export function Receipt({ bookingId, paymentRef, onDone }: Props) {
     );
   }
 
-  const MethodIcon = methodIcon[booking.payment_method] ?? Smartphone;
+  const MethodIcon = methodIcon[bookings[0].payment_method] ?? Smartphone;
+  const totalFare = departure.fare * bookings.length;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -80,7 +81,7 @@ export function Receipt({ bookingId, paymentRef, onDone }: Props) {
         </div>
         <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl animate-slide-up animate-delay-100">Booking confirmed!</h1>
         <p className="mt-2 text-slate-600 animate-slide-up animate-delay-200">
-          Your seat is reserved. Show this receipt to the conductor before boarding.
+          Your {bookings.length > 1 ? `${bookings.length} seats are` : 'seat is'} reserved. Show this receipt to the conductor before boarding.
         </p>
       </div>
 
@@ -110,28 +111,42 @@ export function Receipt({ bookingId, paymentRef, onDone }: Props) {
             <Field icon={<Clock className="h-4 w-4" />} label="Departure">
               {formatTime(departure.departure_time)}
             </Field>
-            <Field icon={<Armchair className="h-4 w-4" />} label="Seat">
-              Seat {booking.seat_number}
+            <Field icon={<Armchair className="h-4 w-4" />} label={bookings.length > 1 ? 'Seats' : 'Seat'}>
+              <span className="flex flex-wrap gap-1.5">
+                {bookings.map((b) => (
+                  <span
+                    key={b.id}
+                    className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-brand-100 px-1.5 text-xs font-bold text-brand-700"
+                  >
+                    {b.seat_number}
+                  </span>
+                ))}
+              </span>
             </Field>
             <Field icon={<MethodIcon className="h-4 w-4" />} label="Payment">
-              {booking.payment_method}
+              {bookings[0].payment_method}
             </Field>
             <Field icon={<MapPin className="h-4 w-4" />} label="Passenger">
-              {booking.passenger_name}
+              {bookings[0].passenger_name}
             </Field>
             <Field icon={<Phone className="h-4 w-4" />} label="Phone">
-              {booking.passenger_phone}
+              {bookings[0].passenger_phone}
             </Field>
           </div>
 
           <div className="mt-6 rounded-xl bg-gradient-to-r from-brand-50 to-teal-50 p-4 ring-1 ring-brand-100">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-600">Amount paid</span>
-              <span className="text-lg font-bold text-brand-700">{formatKes(departure.fare)}</span>
+              <span className="text-slate-600">
+                {bookings.length} {bookings.length === 1 ? 'seat' : 'seats'} × {formatKes(departure.fare)}
+              </span>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <span className="font-semibold text-slate-700">Amount paid</span>
+              <span className="text-lg font-bold text-brand-700">{formatKes(totalFare)}</span>
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
               <span>Booked on</span>
-              <span>{formatDateTime(booking.created_at)}</span>
+              <span>{formatDateTime(bookings[0].created_at)}</span>
             </div>
           </div>
 
@@ -171,7 +186,7 @@ function Field({
       <span className="mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
         {icon}
       </span>
-      <div>
+      <div className="min-w-0">
         <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
         <p className="text-sm font-medium text-slate-800">{children}</p>
       </div>

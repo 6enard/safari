@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Circle, User, Check, Loader as Loader2, X } from 'lucide-react';
+import { ArrowLeft, Circle, User, Check, Loader as Loader2, X, Info } from 'lucide-react';
 import { db, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime } from '@/lib/format';
 
@@ -7,19 +7,19 @@ type Props = {
   route: Route;
   departure: Departure;
   onBack: () => void;
-  onContinue: (seat: number) => void;
+  onContinue: (seats: number[]) => void;
 };
 
 type SeatStatus = 'available' | 'taken';
 
-// Driver sits on the right; seat 1 is on the left, directly above seat 2.
+// Driver + seat 1 share the front row (driver's side, right).
+// Seat 1 is directly above seat 2 on the left column.
 //
-//   Row 0 (front):  1     | (empty)    Driver →
-//   Row 1:          2     |  3, 4
-//   Row 2:          5     |  6, 7
-//   Row 3:          8     |  9, 10
+//   Front row:   1   |   Driver
+//   Row 1:       2   |   3, 4
+//   Row 2:       5   |   6, 7
+//   Row 3:       8   |   9, 10
 const rows: { left: number | null; right: [number, number] | null }[] = [
-  { left: 1, right: null },
   { left: 2, right: [3, 4] },
   { left: 5, right: [6, 7] },
   { left: 8, right: [9, 10] },
@@ -33,15 +33,10 @@ function SeatSVG({ className }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Headrest */}
       <rect x="13" y="4" width="22" height="7" rx="3.5" fill="currentColor" opacity="0.7" />
-      {/* Backrest */}
       <rect x="10" y="9" width="28" height="14" rx="5" fill="currentColor" opacity="0.9" />
-      {/* Seat cushion */}
       <rect x="8" y="21" width="32" height="14" rx="6" fill="currentColor" />
-      {/* Cushion highlight stripe */}
       <rect x="12" y="24" width="24" height="2" rx="1" fill="white" opacity="0.18" />
-      {/* Seat base */}
       <rect x="12" y="33" width="6" height="6" rx="2" fill="currentColor" opacity="0.6" />
       <rect x="30" y="33" width="6" height="6" rx="2" fill="currentColor" opacity="0.6" />
     </svg>
@@ -50,7 +45,7 @@ function SeatSVG({ className }: { className?: string }) {
 
 export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
   const [takenSeats, setTakenSeats] = useState<number[]>([]);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,6 +70,14 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
 
   const seatStatus = (n: number): SeatStatus =>
     takenSeats.includes(n) ? 'taken' : 'available';
+
+  function toggleSeat(n: number) {
+    setSelected((prev) =>
+      prev.includes(n) ? prev.filter((s) => s !== n) : [...prev, n].sort((a, b) => a - b),
+    );
+  }
+
+  const totalFare = departure.fare * selected.length;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -116,15 +119,27 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
             </div>
           ) : (
             <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm animate-fade-in animate-delay-100">
-              <h3 className="mb-4 text-center text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Select your seat
-              </h3>
+              <div className="mb-4 flex items-center justify-center gap-2 text-sm">
+                <h3 className="font-semibold uppercase tracking-wide text-slate-500">
+                  Select your seat{selected.length > 0 ? 's' : ''}
+                </h3>
+              </div>
+
+              <div className="mb-4 flex items-center justify-center gap-2 rounded-lg bg-brand-50 px-4 py-2 text-xs text-brand-700 ring-1 ring-brand-100">
+                <Info className="h-3.5 w-3.5 flex-shrink-0" />
+                You can select multiple seats — tap to add, tap again to remove.
+              </div>
 
               {/* Matatu body */}
               <div className="mx-auto max-w-sm rounded-[2rem] border-2 border-slate-300 bg-gradient-to-b from-slate-50 to-slate-100 p-4 shadow-inner">
-                {/* Driver on the right side; seat 1 on the left */}
+                {/* Front row: Seat 1 (left) + Driver (right) */}
                 <div className="mb-3 flex items-center justify-between rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
-                  <span className="text-xs font-medium text-slate-400">Front</span>
+                  <SeatButton
+                    n={1}
+                    status={seatStatus(1)}
+                    selected={selected.includes(1)}
+                    onSelect={toggleSeat}
+                  />
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-slate-500">Driver</span>
                     <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-200 text-slate-500" title="Driver">
@@ -141,8 +156,8 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                         <SeatButton
                           n={row.left}
                           status={seatStatus(row.left)}
-                          selected={selected === row.left}
-                          onSelect={setSelected}
+                          selected={selected.includes(row.left)}
+                          onSelect={toggleSeat}
                         />
                       ) : (
                         <span className="h-12 w-12" />
@@ -153,14 +168,14 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                           <SeatButton
                             n={row.right[0]}
                             status={seatStatus(row.right[0])}
-                            selected={selected === row.right[0]}
-                            onSelect={setSelected}
+                            selected={selected.includes(row.right[0])}
+                            onSelect={toggleSeat}
                           />
                           <SeatButton
                             n={row.right[1]}
                             status={seatStatus(row.right[1])}
-                            selected={selected === row.right[1]}
-                            onSelect={setSelected}
+                            selected={selected.includes(row.right[1])}
+                            onSelect={toggleSeat}
                           />
                         </>
                       ) : (
@@ -205,19 +220,25 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
           <div className="bg-gradient-to-r from-brand-50 to-teal-50 px-6 py-4">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-brand-800">
               Your selection
+              {selected.length > 0 && (
+                <span className="ml-2 rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">
+                  {selected.length}
+                </span>
+              )}
             </h3>
           </div>
           <div className="p-6">
-            {selected ? (
+            {selected.length > 0 ? (
               <div className="animate-fade-in-scale">
-                <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-brand-50 to-teal-50 p-4 ring-1 ring-brand-200">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-teal-600 font-bold text-white shadow-md shadow-brand-500/30">
-                    {selected}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">Seat {selected}</p>
-                    <p className="text-xs text-brand-700">Available</p>
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {selected.map((s) => (
+                    <span
+                      key={s}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-teal-600 text-sm font-bold text-white shadow-md shadow-brand-500/30 animate-pop-in"
+                    >
+                      {s}
+                    </span>
+                  ))}
                 </div>
                 <dl className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -232,9 +253,19 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                       {formatTime(departure.departure_time)}
                     </dd>
                   </div>
+                  <div className="flex justify-between">
+                    <dt className="text-slate-500">Seats</dt>
+                    <dd className="font-medium text-slate-800">
+                      {selected.join(', ')}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-slate-500">Fare per seat</dt>
+                    <dd className="font-medium text-slate-800">{formatKes(departure.fare)}</dd>
+                  </div>
                   <div className="flex justify-between border-t border-slate-100 pt-3 text-base">
-                    <dt className="font-semibold text-slate-700">Fare</dt>
-                    <dd className="font-bold text-brand-700">{formatKes(departure.fare)}</dd>
+                    <dt className="font-semibold text-slate-700">Total</dt>
+                    <dd className="font-bold text-brand-700">{formatKes(totalFare)}</dd>
                   </div>
                 </dl>
                 <button
@@ -247,7 +278,7 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
             ) : (
               <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400 animate-fade-in">
                 <User className="mx-auto mb-2 h-6 w-6 opacity-60" />
-                Pick a seat from the matatu layout to continue.
+                Pick one or more seats from the matatu layout to continue.
               </div>
             )}
           </div>

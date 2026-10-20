@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { ArrowLeft, CreditCard, Smartphone, Banknote, Loader as Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CreditCard, Smartphone, Banknote, Loader as Loader2, ShieldCheck, Armchair } from 'lucide-react';
 import { db, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime, genPaymentRef } from '@/lib/format';
 
 type Props = {
   route: Route;
   departure: Departure;
-  seat: number;
+  seats: number[];
   onBack: () => void;
-  onPaid: (bookingId: string, paymentRef: string) => void;
+  onPaid: (bookingIds: string[], paymentRef: string) => void;
 };
 
 type Method = 'M-Pesa' | 'Card' | 'Cash';
@@ -19,7 +19,7 @@ const methods: { id: Method; icon: typeof Smartphone; desc: string }[] = [
   { id: 'Cash', icon: Banknote, desc: 'Pay at the booking office' },
 ];
 
-export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
+export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [method, setMethod] = useState<Method>('M-Pesa');
@@ -27,6 +27,7 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const valid = name.trim().length >= 2 && phone.trim().length >= 10;
+  const totalFare = departure.fare * seats.length;
 
   async function handlePay(e: React.FormEvent) {
     e.preventDefault();
@@ -35,20 +36,20 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
     setError(null);
     const paymentRef = genPaymentRef();
     try {
-      const { id } = await db.createBooking({
+      const { ids } = await db.createBookings({
         departure_id: departure.id,
-        seat_number: seat,
+        seat_numbers: seats,
         passenger_name: name.trim(),
         passenger_phone: phone.trim(),
         payment_method: method,
         payment_ref: paymentRef,
       });
       setProcessing(false);
-      onPaid(id, paymentRef);
+      onPaid(ids, paymentRef);
     } catch (e: any) {
       setProcessing(false);
       if (e?.code === '23505' || /already booked/i.test(e?.message ?? '')) {
-        setError('That seat was just booked by someone else. Please go back and pick another seat.');
+        setError('One of the seats was just booked by someone else. Please go back and pick different seats.');
       } else {
         setError(e?.message ?? 'Booking could not be completed.');
       }
@@ -158,7 +159,7 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
               </>
             ) : (
               <>
-                <ShieldCheck className="h-4 w-4" /> Pay {formatKes(departure.fare)}
+                <ShieldCheck className="h-4 w-4" /> Pay {formatKes(totalFare)}
               </>
             )}
           </button>
@@ -192,12 +193,27 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
               <dd className="font-medium text-slate-800">{departure.vehicle_name}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-slate-500">Seat</dt>
-              <dd className="font-medium text-slate-800">{seat}</dd>
+              <dt className="text-slate-500">Seats</dt>
+              <dd className="flex flex-wrap items-center justify-end gap-1">
+                {seats.map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-brand-100 text-xs font-bold text-brand-700"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-slate-500">Fare per seat</dt>
+              <dd className="font-medium text-slate-800">{formatKes(departure.fare)}</dd>
             </div>
             <div className="flex justify-between border-t border-slate-100 pt-3 text-base">
-              <dt className="font-semibold text-slate-700">Total</dt>
-              <dd className="font-bold text-brand-700">{formatKes(departure.fare)}</dd>
+              <dt className="font-semibold text-slate-700">
+                Total ({seats.length} {seats.length === 1 ? 'seat' : 'seats'})
+              </dt>
+              <dd className="font-bold text-brand-700">{formatKes(totalFare)}</dd>
             </div>
           </dl>
         </aside>

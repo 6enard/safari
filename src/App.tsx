@@ -13,16 +13,16 @@ function App() {
   const [step, setStep] = useState<Step>('routes');
   const [route, setRoute] = useState<Route | null>(null);
   const [departure, setDeparture] = useState<Departure | null>(null);
-  const [seat, setSeat] = useState<number | null>(null);
-  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [seats, setSeats] = useState<number[]>([]);
+  const [bookingIds, setBookingIds] = useState<string[]>([]);
   const [paymentRef, setPaymentRef] = useState<string>('');
 
   function startOver() {
     setStep('routes');
     setRoute(null);
     setDeparture(null);
-    setSeat(null);
-    setBookingId(null);
+    setSeats([]);
+    setBookingIds([]);
     setPaymentRef('');
   }
 
@@ -54,26 +54,26 @@ function App() {
             departure={departure}
             onBack={() => setStep('departures')}
             onContinue={(s) => {
-              setSeat(s);
+              setSeats(s);
               setStep('payment');
             }}
           />
         )}
-        {step === 'payment' && route && departure && seat !== null && (
+        {step === 'payment' && route && departure && seats.length > 0 && (
           <Payment
             route={route}
             departure={departure}
-            seat={seat}
+            seats={seats}
             onBack={() => setStep('seats')}
-            onPaid={(id, ref) => {
-              setBookingId(id);
+            onPaid={(ids, ref) => {
+              setBookingIds(ids);
               setPaymentRef(ref);
               setStep('receipt');
             }}
           />
         )}
-        {step === 'receipt' && bookingId && (
-          <Receipt bookingId={bookingId} paymentRef={paymentRef} onDone={startOver} />
+        {step === 'receipt' && bookingIds.length > 0 && (
+          <Receipt bookingIds={bookingIds} paymentRef={paymentRef} onDone={startOver} />
         )}
       </main>
       <Footer />

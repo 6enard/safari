@@ -208,41 +208,66 @@ export const db = {
     );
   },
 
-  async createBooking(input: {
+  async createBookings(input: {
     departure_id: string;
-    seat_number: number;
+    seat_numbers: number[];
     passenger_name: string;
     passenger_phone: string;
     payment_method: string;
     payment_ref: string;
-  }): Promise<{ id: string }> {
+  }): Promise<{ ids: string[] }> {
     await ensureSeeded();
-    const id = uid('booking');
+    const ids: string[] = [];
     let conflict = false;
     await mutate((data) => {
-      const exists = data.bookings.some(
-        (b) => b.departure_id === input.departure_id && b.seat_number === input.seat_number && b.status === 'confirmed',
+      const taken = new Set(
+        data.bookings
+          .filter((b) => b.departure_id === input.departure_id && b.status === 'confirmed')
+          .map((b) => b.seat_number),
       );
-      if (exists) {
-        conflict = true;
-        return;
+      for (const seat of input.seat_numbers) {
+        if (taken.has(seat)) {
+          conflict = true;
+          return;
+        }
       }
-      data.bookings.push({
-        id,
-        departure_id: input.departure_id,
-        seat_number: input.seat_number,
-        passenger_name: input.passenger_name,
-        passenger_phone: input.passenger_phone,
-        payment_method: input.payment_method,
-        payment_ref: input.payment_ref,
-        status: 'confirmed',
-        created_at: new Date().toISOString(),
-      });
+      if (conflict) return;
+      const now = new Date().toISOString();
+      for (const seat of input.seat_numbers) {
+        const id = uid('booking');
+        ids.push(id);
+        data.bookings.push({
+          id,
+          departure_id: input.departure_id,
+          seat_number: seat,
+          passenger_name: input.passenger_name,
+          passenger_phone: input.passenger_phone,
+          payment_method: input.payment_method,
+          payment_ref: input.payment_ref,
+          status: 'confirmed',
+          created_at: now,
+        });
+      }
     });
     if (conflict) {
       throw { code: '23505', message: 'Seat already booked' };
     }
-    return { id };
+    return { ids };
+  },
+
+  async getBookingsByRef(paymentRef: string): Promise<{ bookings: Booking[]; departure: Departure; route: Route } | null> {
+    await ensureSeeded();
+    return read((d) => {
+      const bookings = d.bookings
+        .filter((b) => b.payment_ref === paymentRef)
+        .sort((a, b) => a.seat_number - b.seat_number);
+      if (bookings.length === 0) return null;
+      const departure = d.departures.find((dep) => dep.id === bookings[0].departure_id);
+      if (!departure) return null;
+      const route = d.routes.find((r) => r.id === departure.route_id);
+      if (!route) return null;
+      return { bookings, departure, route };
+    });
   },
 
   async getBooking(id: string): Promise<{ booking: Booking; departure: Departure; route: Route } | null> {

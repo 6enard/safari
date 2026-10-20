@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, CreditCard, Smartphone, Banknote, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CreditCard, Smartphone, Banknote, Loader as Loader2, ShieldCheck } from 'lucide-react';
 import { db, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime, genPaymentRef } from '@/lib/format';
 
@@ -59,17 +59,17 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <button
         onClick={onBack}
-        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-emerald-700"
+        className="group mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-brand-700"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to seat selection
+        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> Back to seat selection
       </button>
 
-      <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Payment & details</h1>
-      <p className="mt-2 text-slate-600">Enter your details and choose how to pay.</p>
+      <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl animate-slide-up">Payment & details</h1>
+      <p className="mt-2 text-slate-600 animate-slide-up animate-delay-100">Enter your details and choose how to pay.</p>
 
       <form onSubmit={handlePay} className="mt-8 grid gap-6 md:grid-cols-[1fr_300px]">
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="space-y-6 animate-slide-up animate-delay-200">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
               Passenger details
             </h2>
@@ -84,7 +84,7 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Amara Otieno"
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition-colors focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 py-2.5 text-sm outline-none transition-all focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200"
                 />
               </div>
               <div>
@@ -97,13 +97,13 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 0712 345 678"
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition-colors focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 py-2.5 text-sm outline-none transition-all focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200"
                 />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
               Payment method
             </h2>
@@ -117,16 +117,16 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
                     key={m.id}
                     onClick={() => setMethod(m.id)}
                     className={[
-                      'flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all',
+                      'flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all duration-200',
                       active
-                        ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-300'
-                        : 'border-slate-200 bg-white hover:border-slate-300',
+                        ? 'border-brand-500 bg-gradient-to-r from-brand-50 to-teal-50 ring-1 ring-brand-300 shadow-sm'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50',
                     ].join(' ')}
                   >
                     <span
                       className={[
-                        'inline-flex h-10 w-10 items-center justify-center rounded-lg',
-                        active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600',
+                        'inline-flex h-10 w-10 items-center justify-center rounded-lg transition-all',
+                        active ? 'bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-md shadow-brand-500/30' : 'bg-slate-100 text-slate-600',
                       ].join(' ')}
                     >
                       <Icon className="h-5 w-5" />
@@ -142,7 +142,7 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 animate-fade-in">
               {error}
             </div>
           )}
@@ -150,7 +150,7 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
           <button
             type="submit"
             disabled={!valid || processing}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
           >
             {processing ? (
               <>
@@ -164,9 +164,11 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
           </button>
         </div>
 
-        <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:sticky md:top-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Summary</h3>
-          <dl className="mt-4 space-y-3 text-sm">
+        <aside className="h-fit overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm md:sticky md:top-6 animate-slide-in-right animate-delay-300">
+          <div className="bg-gradient-to-r from-brand-50 to-teal-50 px-6 py-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-brand-800">Summary</h3>
+          </div>
+          <dl className="space-y-3 p-6 text-sm">
             <div className="flex justify-between gap-2">
               <dt className="text-slate-500">Route</dt>
               <dd className="text-right font-medium text-slate-800">
@@ -195,7 +197,7 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
             </div>
             <div className="flex justify-between border-t border-slate-100 pt-3 text-base">
               <dt className="font-semibold text-slate-700">Total</dt>
-              <dd className="font-bold text-emerald-700">{formatKes(departure.fare)}</dd>
+              <dd className="font-bold text-brand-700">{formatKes(departure.fare)}</dd>
             </div>
           </dl>
         </aside>

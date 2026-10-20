@@ -38,8 +38,7 @@ export const SEAT_LAYOUT = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 
 const DB_NAME = 'tiketi-db';
 const STORE = 'store';
-const VERSION = 1;
-const SEED_KEY = '__seeded__';
+const VERSION = 2;
 
 type RecordMap = {
   routes: Route[];
@@ -124,8 +123,8 @@ function seedData(): RecordMap {
 
   const trips = [
     { departure_time: '07:30', vehicle_name: 'Safari Express', plate_number: 'KDA 100A', fare_adjust: 0, amenities: ['WiFi', 'AC', 'Charging'] },
-    { departure_time: '14:00', vehicle_name: 'Matatu Masters', plate_number: 'KDB 220B', fare_adjust: -100, amenities: ['AC'] },
-    { departure_time: '18:30', vehicle_name: 'Nyota Travellers', plate_number: 'KDC 330C', fare_adjust: 150, amenities: ['WiFi', 'AC', 'Charging', 'Snacks'] },
+    { departure_time: '14:00', vehicle_name: 'Safari Express', plate_number: 'KDB 220B', fare_adjust: -100, amenities: ['AC'] },
+    { departure_time: '18:30', vehicle_name: 'Safari Express', plate_number: 'KDC 330C', fare_adjust: 150, amenities: ['WiFi', 'AC', 'Charging', 'Snacks'] },
   ];
 
   const departures: Departure[] = [];
@@ -152,11 +151,12 @@ function seedData(): RecordMap {
 }
 
 async function ensureSeeded(): Promise<void> {
-  const seeded = await read((d) => d.routes.length > 0);
-  if (!seeded) {
-    const data = seedData();
-    const idb = await openDb();
-    await writeAll(idb, data);
+  const idb = await openDb();
+  const data = await readAll(idb);
+  const needsSeed = data.routes.length === 0 || data.departures.some((d) => d.vehicle_name !== 'Safari Express');
+  if (needsSeed) {
+    const fresh = seedData();
+    await writeAll(idb, fresh);
   }
 }
 

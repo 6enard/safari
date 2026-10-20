@@ -127,50 +127,51 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
       </div>
 
       {/* Calendar step */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 text-sm font-semibold uppercase tracking-wide text-emerald-800">
           <Calendar className="h-4 w-4" /> Choose your travel date
         </div>
 
         {loadingDates ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+          <div className="flex items-center justify-center py-14">
+            <Loader2 className="h-7 w-7 animate-spin text-emerald-600" />
           </div>
         ) : (
-          <>
-            <div className="mb-4 flex items-center justify-between">
+          <div className="p-6">
+            <div className="mb-5 flex items-center justify-between">
               <button
                 onClick={prevMonth}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
                 aria-label="Previous month"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-5 w-5" />
               </button>
-              <span className="text-base font-semibold text-slate-800">
+              <span className="text-lg font-bold text-slate-800">
                 {MONTHS[viewMonth]} {viewYear}
               </span>
               <button
                 onClick={nextMonth}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
                 aria-label="Next month"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mb-2 grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-400">
+            <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
               {WEEKDAYS.map((w) => (
-                <span key={w}>{w}</span>
+                <span key={w} className="py-1">{w}</span>
               ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-1.5">
               {calendarCells.map((d, idx) => {
                 if (!d) return <span key={idx} className="aspect-square" />;
                 const iso = toISO(d);
                 const isPast = d < today;
                 const isAvailable = availableSet.has(iso);
                 const isSelected = selectedDate === iso;
+                const isToday = toISO(today) === iso;
                 const disabled = isPast || !isAvailable;
                 return (
                   <button
@@ -178,24 +179,38 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
                     disabled={disabled}
                     onClick={() => setSelectedDate(iso)}
                     className={[
-                      'aspect-square rounded-lg text-sm font-medium transition-all',
+                      'relative aspect-square rounded-xl text-sm font-semibold transition-all',
                       isSelected
                         ? 'bg-emerald-600 text-white shadow-md ring-2 ring-emerald-300'
                         : disabled
                           ? 'cursor-not-allowed text-slate-300'
-                          : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 ring-1 ring-slate-200',
+                          : 'text-slate-700 ring-1 ring-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:ring-emerald-300',
                     ].join(' ')}
                   >
                     {d.getDate()}
+                    {isToday && !isSelected && (
+                      <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-emerald-500" />
+                    )}
+                    {isAvailable && !isSelected && (
+                      <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-emerald-400" />
+                    )}
                   </button>
                 );
               })}
             </div>
 
-            <p className="mt-4 text-xs text-slate-400">
-              Dates with available matatus are selectable. Past dates are disabled.
-            </p>
-          </>
+            <div className="mt-5 flex items-center justify-center gap-5 text-xs text-slate-500">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-md bg-emerald-600" /> Selected
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-md ring-1 ring-slate-200" /> Available
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-md bg-slate-100" /> No trips
+              </span>
+            </div>
+          </div>
         )}
       </div>
 
@@ -223,12 +238,13 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
                   className="group flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <div className="flex items-start justify-between">
-                    <div>
-                      <div className="inline-flex items-center gap-2 text-lg font-bold text-slate-900">
-                        <Bus className="h-5 w-5 text-emerald-600" />
-                        {dep.vehicle_name}
-                      </div>
-                      <p className="mt-1 text-xs font-medium text-slate-500">Plate {dep.plate_number}</p>
+                    <div className="inline-flex items-center gap-2">
+                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                        <Bus className="h-5 w-5" />
+                      </span>
+                      <span className="font-mono text-base font-bold tracking-wide text-slate-900">
+                        {dep.plate_number}
+                      </span>
                     </div>
                     <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-700">
                       <Clock className="h-4 w-4" />

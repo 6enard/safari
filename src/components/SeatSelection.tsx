@@ -13,17 +13,18 @@ type Props = {
 type SeatStatus = 'available' | 'taken';
 
 // Layout per spec:
-// Front row: Seat 1 (left) + Driver (right)
-// Then repeating rows: [left seat] [aisle] [right seat A, right seat B]
-//   Row 1: 2  |  3, 4
-//   Row 2: 5  |  6, 7
-//   Row 3: 8  |  9, 10
-const rows: { left: number; right: [number, number] }[] = [
+// Seat 1 front-left, Seat 2 directly behind 1, then aisle, then 3 & 4 on the right.
+// Repeat: left seat, aisle, two right seats, until 10.
+//   Row 0: 1 | (driver)
+//   Row 1: 2 | 3, 4
+//   Row 2: 5 | 6, 7
+//   Row 3: 8 | 9, 10
+const rows: { left: number | null; right: [number, number] | null }[] = [
+  { left: 1, right: null },
   { left: 2, right: [3, 4] },
   { left: 5, right: [6, 7] },
   { left: 8, right: [9, 10] },
 ];
-const frontSeat = 1;
 
 export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
   const [takenSeats, setTakenSeats] = useState<number[]>([]);
@@ -71,7 +72,7 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                   {route.origin} → {route.destination}
                 </p>
                 <p className="text-sm text-slate-500">
-                  {departure.vehicle_name} · Plate {departure.plate_number}
+                  Safari Express · Plate {departure.plate_number}
                 </p>
               </div>
               <div className="text-right text-sm">
@@ -99,45 +100,47 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
 
               {/* Matatu body */}
               <div className="mx-auto max-w-sm rounded-[2rem] border-2 border-slate-300 bg-slate-50 p-4">
-                {/* Front row: Seat 1 (left) + Driver (right) */}
-                <div className="mb-3 flex items-center justify-between rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
-                  <span className="text-xs font-medium text-slate-500">Front</span>
-                  <div className="flex items-center gap-3">
-                    <SeatButton
-                      n={frontSeat}
-                      status={seatStatus(frontSeat)}
-                      selected={selected === frontSeat}
-                      onSelect={setSelected}
-                    />
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-200 text-slate-500" title="Driver">
-                      <Circle className="h-5 w-5" />
-                    </span>
-                  </div>
+                {/* Front row: Driver only (right side) */}
+                <div className="mb-3 flex items-center justify-end rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
+                  <span className="mr-1 text-xs font-medium text-slate-500">Driver</span>
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-200 text-slate-500" title="Driver">
+                    <Circle className="h-5 w-5" />
+                  </span>
                 </div>
 
-                {/* Repeating rows: [left] [aisle] [right A, right B] */}
+                {/* Seat rows: [left] [aisle] [right A, right B] */}
                 <div className="space-y-3">
-                  {rows.map((row) => (
-                    <div key={row.left} className="flex items-center justify-center gap-3">
-                      <SeatButton
-                        n={row.left}
-                        status={seatStatus(row.left)}
-                        selected={selected === row.left}
-                        onSelect={setSelected}
-                      />
+                  {rows.map((row, idx) => (
+                    <div key={idx} className="flex items-center justify-center gap-3">
+                      {row.left !== null ? (
+                        <SeatButton
+                          n={row.left}
+                          status={seatStatus(row.left)}
+                          selected={selected === row.left}
+                          onSelect={setSelected}
+                        />
+                      ) : (
+                        <span className="h-10 w-10" />
+                      )}
                       <div className="mx-1 h-10 w-6 rounded-md bg-slate-200/60" aria-hidden />
-                      <SeatButton
-                        n={row.right[0]}
-                        status={seatStatus(row.right[0])}
-                        selected={selected === row.right[0]}
-                        onSelect={setSelected}
-                      />
-                      <SeatButton
-                        n={row.right[1]}
-                        status={seatStatus(row.right[1])}
-                        selected={selected === row.right[1]}
-                        onSelect={setSelected}
-                      />
+                      {row.right !== null ? (
+                        <>
+                          <SeatButton
+                            n={row.right[0]}
+                            status={seatStatus(row.right[0])}
+                            selected={selected === row.right[0]}
+                            onSelect={setSelected}
+                          />
+                          <SeatButton
+                            n={row.right[1]}
+                            status={seatStatus(row.right[1])}
+                            selected={selected === row.right[1]}
+                            onSelect={setSelected}
+                          />
+                        </>
+                      ) : (
+                        <span className="h-10 w-[88px]" />
+                      )}
                     </div>
                   ))}
                 </div>

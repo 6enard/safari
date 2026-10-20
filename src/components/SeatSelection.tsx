@@ -12,6 +12,19 @@ type Props = {
 
 type SeatStatus = 'available' | 'taken';
 
+// Layout per spec:
+// Front row: Seat 1 (left) + Driver (right)
+// Then repeating rows: [left seat] [aisle] [right seat A, right seat B]
+//   Row 1: 2  |  3, 4
+//   Row 2: 5  |  6, 7
+//   Row 3: 8  |  9, 10
+const rows: { left: number; right: [number, number] }[] = [
+  { left: 2, right: [3, 4] },
+  { left: 5, right: [6, 7] },
+  { left: 8, right: [9, 10] },
+];
+const frontSeat = 1;
+
 export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
   const [takenSeats, setTakenSeats] = useState<number[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -40,29 +53,13 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
   const seatStatus = (n: number): SeatStatus =>
     takenSeats.includes(n) ? 'taken' : 'available';
 
-  // 10-seater matatu layout: rows of 2 seats on the left, 2 on the right,
-  // with the driver at the front. Seat 1 is the front-left passenger.
-  // Layout: [driver] + 4 rows of [1,2 | 3,4]... Actually for a 10-seater:
-  // Row0: Driver + Seat1
-  // Row1: Seat2,Seat3 | aisle | Seat4,Seat5
-  // Row2: Seat6,Seat7 | aisle | Seat8,Seat9
-  // Row3: Seat10 (back row full-width)
-  const rows: (number[] | 'driver' | 'aisle')[] = [
-    'driver',
-    [2, 3, 4, 5],
-    [6, 7, 8, 9],
-    [10],
-  ];
-  // Seat 1 sits next to the driver (front passenger)
-  const frontPassenger = 1;
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <button
         onClick={onBack}
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-emerald-700"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to departures
+        <ArrowLeft className="h-4 w-4" /> Back to available matatus
       </button>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -101,77 +98,48 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
               </h3>
 
               {/* Matatu body */}
-              <div className="mx-auto max-w-md rounded-[2rem] border-2 border-slate-300 bg-slate-50 p-4">
-                {/* Front / driver area */}
+              <div className="mx-auto max-w-sm rounded-[2rem] border-2 border-slate-300 bg-slate-50 p-4">
+                {/* Front row: Seat 1 (left) + Driver (right) */}
                 <div className="mb-3 flex items-center justify-between rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
                   <span className="text-xs font-medium text-slate-500">Front</span>
                   <div className="flex items-center gap-3">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-200 text-slate-500">
-                      <Circle className="h-5 w-5" />
-                    </span>
                     <SeatButton
-                      n={frontPassenger}
-                      status={seatStatus(frontPassenger)}
-                      selected={selected === frontPassenger}
+                      n={frontSeat}
+                      status={seatStatus(frontSeat)}
+                      selected={selected === frontSeat}
                       onSelect={setSelected}
                     />
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-200 text-slate-500" title="Driver">
+                      <Circle className="h-5 w-5" />
+                    </span>
                   </div>
                 </div>
 
-                {/* Passenger rows */}
+                {/* Repeating rows: [left] [aisle] [right A, right B] */}
                 <div className="space-y-3">
-                  {rows.map((row, idx) => {
-                    if (row === 'driver') return null;
-                    const seats = row as number[];
-                    return (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-center gap-3"
-                      >
-                        {seats.length === 4 ? (
-                          <>
-                            <SeatButton
-                              n={seats[0]}
-                              status={seatStatus(seats[0])}
-                              selected={selected === seats[0]}
-                              onSelect={setSelected}
-                            />
-                            <SeatButton
-                              n={seats[1]}
-                              status={seatStatus(seats[1])}
-                              selected={selected === seats[1]}
-                              onSelect={setSelected}
-                            />
-                            <div className="mx-2 h-10 w-6 rounded-md bg-slate-200/60" aria-hidden />
-                            <SeatButton
-                              n={seats[2]}
-                              status={seatStatus(seats[2])}
-                              selected={selected === seats[2]}
-                              onSelect={setSelected}
-                            />
-                            <SeatButton
-                              n={seats[3]}
-                              status={seatStatus(seats[3])}
-                              selected={selected === seats[3]}
-                              onSelect={setSelected}
-                            />
-                          </>
-                        ) : (
-                          <div className="flex w-full justify-center gap-3">
-                            {seats.map((n) => (
-                              <SeatButton
-                                key={n}
-                                n={n}
-                                status={seatStatus(n)}
-                                selected={selected === n}
-                                onSelect={setSelected}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {rows.map((row) => (
+                    <div key={row.left} className="flex items-center justify-center gap-3">
+                      <SeatButton
+                        n={row.left}
+                        status={seatStatus(row.left)}
+                        selected={selected === row.left}
+                        onSelect={setSelected}
+                      />
+                      <div className="mx-1 h-10 w-6 rounded-md bg-slate-200/60" aria-hidden />
+                      <SeatButton
+                        n={row.right[0]}
+                        status={seatStatus(row.right[0])}
+                        selected={selected === row.right[0]}
+                        onSelect={setSelected}
+                      />
+                      <SeatButton
+                        n={row.right[1]}
+                        status={seatStatus(row.right[1])}
+                        selected={selected === row.right[1]}
+                        onSelect={setSelected}
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 <div className="mt-4 text-center text-xs font-medium text-slate-400">

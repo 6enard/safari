@@ -130,7 +130,7 @@ function seedData(): RecordMap {
 
   const departures: Departure[] = [];
   for (const route of routes) {
-    for (let day = 0; day < 3; day++) {
+    for (let day = 0; day < 30; day++) {
       for (const t of trips) {
         departures.push({
           id: uid('dep'),
@@ -173,6 +173,29 @@ export const db = {
       d.departures
         .filter((dep) => dep.route_id === routeId && dep.departure_date >= today)
         .sort((a, b) => a.departure_date.localeCompare(b.departure_date) || a.departure_time.localeCompare(b.departure_time)),
+    );
+  },
+
+  async listDeparturesForDate(routeId: string, date: string): Promise<Departure[]> {
+    await ensureSeeded();
+    return read((d) =>
+      d.departures
+        .filter((dep) => dep.route_id === routeId && dep.departure_date === date)
+        .sort((a, b) => a.departure_time.localeCompare(b.departure_time)),
+    );
+  },
+
+  async listAvailableDates(routeId: string): Promise<string[]> {
+    await ensureSeeded();
+    const today = isoDate(0);
+    return read((d) =>
+      Array.from(
+        new Set(
+          d.departures
+            .filter((dep) => dep.route_id === routeId && dep.departure_date >= today)
+            .map((dep) => dep.departure_date),
+        ),
+      ).sort(),
     );
   },
 

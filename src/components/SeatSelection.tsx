@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Circle, User, Check, Loader2, X } from 'lucide-react';
-import { supabase, type Departure, type Route } from '@/lib/supabase';
+import { db, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime } from '@/lib/format';
 
 type Props = {
@@ -22,16 +22,13 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
     let active = true;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('seat_number')
-        .eq('departure_id', departure.id)
-        .eq('status', 'confirmed');
-      if (!active) return;
-      if (error) {
-        setError(error.message);
-      } else {
-        setTakenSeats((data ?? []).map((b) => b.seat_number as number));
+      try {
+        const seats = await db.listBookedSeats(departure.id);
+        if (!active) return;
+        setTakenSeats(seats);
+      } catch (e: any) {
+        if (!active) return;
+        setError(e?.message ?? 'Failed to load seats');
       }
       setLoading(false);
     })();

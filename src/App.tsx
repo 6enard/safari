@@ -5,7 +5,7 @@ import { DepartureList } from '@/components/DepartureList';
 import { SeatSelection } from '@/components/SeatSelection';
 import { Payment } from '@/components/Payment';
 import { Receipt } from '@/components/Receipt';
-import type { Route, Departure } from '@/lib/supabase';
+import type { Route, Departure } from '@/lib/db';
 
 type Step = 'routes' | 'departures' | 'seats' | 'payment' | 'receipt';
 

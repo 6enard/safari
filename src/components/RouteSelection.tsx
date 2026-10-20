@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Bus, MapPin, Clock, ArrowRight, TrendingUp, Loader2 } from 'lucide-react';
-import { supabase, type Route } from '@/lib/supabase';
+import { db, type Route } from '@/lib/db';
 import { formatKes } from '@/lib/format';
 
 type Props = {
@@ -16,15 +16,13 @@ export function RouteSelection({ onSelectRoute }: Props) {
     let active = true;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('routes')
-        .select('*')
-        .order('popular', { ascending: false });
-      if (!active) return;
-      if (error) {
-        setError(error.message);
-      } else {
-        setRoutes(data ?? []);
+      try {
+        const data = await db.listRoutes();
+        if (!active) return;
+        setRoutes(data);
+      } catch (e: any) {
+        if (!active) return;
+        setError(e?.message ?? 'Failed to load routes');
       }
       setLoading(false);
     })();

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Bus, Clock, Loader2, Wifi, Snowflake, Zap, Coffee } from 'lucide-react';
-import { supabase, type Route, type Departure } from '@/lib/supabase';
+import { db, type Route, type Departure } from '@/lib/db';
 import { formatKes, formatDate, formatTime } from '@/lib/format';
 
 type Props = {
@@ -25,19 +25,13 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
     let active = true;
     (async () => {
       setLoading(true);
-      const today = new Date().toISOString().slice(0, 10);
-      const { data, error } = await supabase
-        .from('departures')
-        .select('*')
-        .eq('route_id', route.id)
-        .gte('departure_date', today)
-        .order('departure_date', { ascending: true })
-        .order('departure_time', { ascending: true });
-      if (!active) return;
-      if (error) {
-        setError(error.message);
-      } else {
-        setDepartures(data ?? []);
+      try {
+        const data = await db.listDepartures(route.id);
+        if (!active) return;
+        setDepartures(data);
+      } catch (e: any) {
+        if (!active) return;
+        setError(e?.message ?? 'Failed to load departures');
       }
       setLoading(false);
     })();

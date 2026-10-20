@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Download, Home, MapPin, Clock, Calendar, Bus, Armchair, Phone, Smartphone, CreditCard, Banknote, Loader2 } from 'lucide-react';
-import { supabase, type Booking, type Departure, type Route } from '@/lib/supabase';
+import { db, type Booking, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
 
 type Props = {
@@ -26,33 +26,20 @@ export function Receipt({ bookingId, paymentRef, onDone }: Props) {
     let active = true;
     (async () => {
       setLoading(true);
-      const { data: b, error: be } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('id', bookingId)
-        .maybeSingle();
-      if (!active) return;
-      if (be || !b) {
-        setError(be?.message ?? 'Booking not found');
-        setLoading(false);
-        return;
-      }
-      setBooking(b as Booking);
-      const { data: d } = await supabase
-        .from('departures')
-        .select('*')
-        .eq('id', (b as Booking).departure_id)
-        .maybeSingle();
-      if (!active) return;
-      setDeparture(d as Departure);
-      if (d) {
-        const { data: r } = await supabase
-          .from('routes')
-          .select('*')
-          .eq('id', (d as Departure).route_id)
-          .maybeSingle();
+      try {
+        const result = await db.getBooking(bookingId);
         if (!active) return;
-        setRoute(r as Route);
+        if (!result) {
+          setError('Booking not found');
+          setLoading(false);
+          return;
+        }
+        setBooking(result.booking);
+        setDeparture(result.departure);
+        setRoute(result.route);
+      } catch (e: any) {
+        if (!active) return;
+        setError(e?.message ?? 'Failed to load receipt');
       }
       setLoading(false);
     })();

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, CreditCard, Smartphone, Banknote, Loader2, ShieldCheck } from 'lucide-react';
-import { supabase, type Departure, type Route } from '@/lib/supabase';
+import { db, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime, genPaymentRef } from '@/lib/format';
 
 type Props = {
@@ -34,34 +34,25 @@ export function Payment({ route, departure, seat, onBack, onPaid }: Props) {
     setProcessing(true);
     setError(null);
     const paymentRef = genPaymentRef();
-    const { data, error } = await supabase
-      .from('bookings')
-      .insert({
+    try {
+      const { id } = await db.createBooking({
         departure_id: departure.id,
         seat_number: seat,
         passenger_name: name.trim(),
         passenger_phone: phone.trim(),
         payment_method: method,
         payment_ref: paymentRef,
-        status: 'confirmed',
-      })
-      .select('id')
-      .maybeSingle();
-    setProcessing(false);
-    if (error) {
-      // Handle race condition: someone else booked the seat
-      if (error.code === '23505') {
+      });
+      setProcessing(false);
+      onPaid(id, paymentRef);
+    } catch (e: any) {
+      setProcessing(false);
+      if (e?.code === '23505' || /already booked/i.test(e?.message ?? '')) {
         setError('That seat was just booked by someone else. Please go back and pick another seat.');
       } else {
-        setError(error.message);
+        setError(e?.message ?? 'Booking could not be completed.');
       }
-      return;
     }
-    if (!data) {
-      setError('Booking could not be completed. Please try again.');
-      return;
-    }
-    onPaid(data.id, paymentRef);
   }
 
   return (

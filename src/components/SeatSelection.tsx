@@ -12,17 +12,12 @@ type Props = {
 
 type SeatStatus = 'available' | 'taken';
 
-// Seat 1 is on the driver's side (left), directly above seat 2.
-// Driver sits at front-left; single-seat column on the left, double seats on the right.
+// Driver sits on the right; seat 1 is on the left, directly above seat 2.
 //
-//   Row 0 (front):  Driver | (empty)
-//   Row 1:            1    |  2, 3
-//   Row 2:            4    |  5, 6
-//   Row 3:            7    |  8, 9
-//   Row 4:           10    |  (empty)
-//
-// Seat 1 directly above 2? — they share the left column, 1 is the first, 2 is
-// the second. This satisfies "seat 1 on the driver's side directly above 2".
+//   Row 0 (front):  1     | (empty)    Driver →
+//   Row 1:          2     |  3, 4
+//   Row 2:          5     |  6, 7
+//   Row 3:          8     |  9, 10
 const rows: { left: number | null; right: [number, number] | null }[] = [
   { left: 1, right: null },
   { left: 2, right: [3, 4] },
@@ -127,12 +122,15 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
 
               {/* Matatu body */}
               <div className="mx-auto max-w-sm rounded-[2rem] border-2 border-slate-300 bg-gradient-to-b from-slate-50 to-slate-100 p-4 shadow-inner">
-                {/* Driver — now on the left (driver's side) */}
-                <div className="mb-3 flex items-center justify-start rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-200 text-slate-500" title="Driver">
-                    <Circle className="h-5 w-5" />
-                  </span>
-                  <span className="ml-2 text-xs font-medium text-slate-500">Driver</span>
+                {/* Driver on the right side; seat 1 on the left */}
+                <div className="mb-3 flex items-center justify-between rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
+                  <span className="text-xs font-medium text-slate-400">Front</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-slate-500">Driver</span>
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-200 text-slate-500" title="Driver">
+                      <Circle className="h-5 w-5" />
+                    </span>
+                  </div>
                 </div>
 
                 {/* Seat rows */}
@@ -192,7 +190,7 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                   Selected
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <span className="inline-flex h-5 w-5 items-center justify-center text-slate-400">
+                  <span className="inline-flex h-5 w-5 items-center justify-center text-red-500">
                     <SeatSVG className="h-5 w-5" />
                   </span>
                   Taken
@@ -280,7 +278,7 @@ function SeatButton({
       className={[
         'group relative inline-flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-200',
         taken
-          ? 'cursor-not-allowed text-slate-400'
+          ? 'cursor-not-allowed text-red-500'
           : selected
             ? 'text-white scale-110 shadow-lg shadow-brand-500/40 ring-2 ring-brand-300 animate-pop-in'
             : 'text-slate-300 hover:text-brand-600 hover:scale-110 active:scale-95',
@@ -290,7 +288,7 @@ function SeatButton({
         <>
           <SeatSVG className="h-10 w-10" />
           <span className="absolute inset-0 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-500" />
+            <X className="h-4 w-4 text-red-600" strokeWidth={3} />
           </span>
         </>
       ) : selected ? (

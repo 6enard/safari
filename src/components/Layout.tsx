@@ -1,7 +1,13 @@
 import { Bus } from 'lucide-react';
 import { AuthControls } from '@/components/AuthControls';
 
-export function Header({ onOpenProfile }: { onOpenProfile: () => void }) {
+type HeaderProps = {
+  onOpenProfile: () => void;
+  onOpenBookings: () => void;
+  onOpenAdmin: () => void;
+};
+
+export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl transition-shadow">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
@@ -19,14 +25,15 @@ export function Header({ onOpenProfile }: { onOpenProfile: () => void }) {
           <nav className="hidden items-center gap-1 text-sm font-medium text-slate-600 sm:flex">
             <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Routes</a>
             <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Help</a>
-            <a
-              href="#"
+            <button
+              type="button"
+              onClick={onOpenBookings}
               className="rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-2 text-white shadow-md shadow-brand-500/25 transition-all hover:shadow-lg hover:shadow-brand-500/40 hover:brightness-110"
             >
               My bookings
-            </a>
+            </button>
           </nav>
-          <AuthControls onOpenProfile={onOpenProfile} />
+          <AuthControls onOpenProfile={onOpenProfile} onOpenBookings={onOpenBookings} onOpenAdmin={onOpenAdmin} />
         </div>
       </div>
     </header>

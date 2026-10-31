@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, CreditCard, Smartphone, Banknote, Loader as Loader2, ShieldCheck, Armchair } from 'lucide-react';
+import { ArrowLeft, CreditCard, Smartphone, Banknote, Loader as Loader2, ShieldCheck } from 'lucide-react';
 import { db, type Departure, type Route } from '@/lib/db';
 import { useAuth } from '@/lib/authContext';
 import { formatKes, formatDate, formatTime, genPaymentRef } from '@/lib/format';
@@ -39,7 +39,6 @@ export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
     const paymentRef = genPaymentRef();
     try {
       const { ids } = await db.createBookings({
-        user_id: user.uid,
         departure_id: departure.id,
         seat_numbers: seats,
         passenger_name: name.trim(),
@@ -49,12 +48,14 @@ export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
       });
       setProcessing(false);
       onPaid(ids, paymentRef);
-    } catch (e: any) {
+    } catch (e) {
       setProcessing(false);
-      if (e?.code === '23505' || /already booked/i.test(e?.message ?? '')) {
+      const code = (e as { code?: string } | null)?.code;
+      const message = e instanceof Error ? e.message : '';
+      if (code === '23505' || /already booked/i.test(message)) {
         setError('One of the seats was just booked by someone else. Please go back and pick different seats.');
       } else {
-        setError(e?.message ?? 'Booking could not be completed.');
+        setError(message || 'Booking could not be completed.');
       }
     }
   }

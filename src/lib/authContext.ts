@@ -5,6 +5,7 @@ export type AuthUser = {
   email: string | null;
   displayName: string | null;
   createdAt: string | null;
+  emailVerified: boolean;
 };
 
 export type AuthState = {

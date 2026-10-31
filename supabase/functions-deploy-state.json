@@ -1,0 +1,13 @@
+{
+  "projectId": "72543063",
+  "functions": {
+    "admin": {
+      "hasChanged": false,
+      "hash": "0d14e54f49bfd04b82a5da602b36b64823c7914092a6705f7f520e4e6b0791ab"
+    },
+    "bookings": {
+      "hasChanged": false,
+      "hash": "00a1465cf9ce682f98efe0ec70ebfe852c7f80829a0f35994514d216bb37ead7"
+    }
+  }
+}

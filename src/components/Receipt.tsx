@@ -4,7 +4,6 @@ import { db, type Booking, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
 
 type Props = {
-  bookingIds: string[];
   paymentRef: string;
   onDone: () => void;
 };
@@ -15,7 +14,7 @@ const methodIcon: Record<string, typeof Smartphone> = {
   Cash: Banknote,
 };
 
-export function Receipt({ bookingIds, paymentRef, onDone }: Props) {
+export function Receipt({ paymentRef, onDone }: Props) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [departure, setDeparture] = useState<Departure | null>(null);
   const [route, setRoute] = useState<Route | null>(null);
@@ -37,9 +36,9 @@ export function Receipt({ bookingIds, paymentRef, onDone }: Props) {
         setBookings(result.bookings);
         setDeparture(result.departure);
         setRoute(result.route);
-      } catch (e: any) {
+      } catch (e) {
         if (!active) return;
-        setError(e?.message ?? 'Failed to load receipt');
+        setError(e instanceof Error ? e.message : 'Failed to load receipt');
       }
       setLoading(false);
     })();

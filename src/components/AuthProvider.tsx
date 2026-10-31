@@ -10,6 +10,7 @@ function toAuthUser(u: User | null): AuthUser | null {
         email: u.email,
         displayName: u.displayName,
         createdAt: u.metadata.creationTime ?? null,
+        emailVerified: u.emailVerified,
       }
     : null;
 }

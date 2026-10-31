@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Loader as Loader2 } from 'lucide-react';
 import { Header, Footer } from '@/components/Layout';
+import { Admin } from '@/components/Admin';
+import { MyBookings } from '@/components/MyBookings';
 import { BookingSteps } from '@/components/BookingSteps';
 import { SignInGate } from '@/components/SignInGate';
 import { Profile } from '@/components/Profile';
@@ -10,10 +12,11 @@ import { SeatSelection } from '@/components/SeatSelection';
 import { Payment } from '@/components/Payment';
 import { Receipt } from '@/components/Receipt';
 import { useAuth } from '@/lib/authContext';
+import { isAdminEmail } from '@/lib/adminApi';
 import type { Route, Departure } from '@/lib/db';
 
 type Step = 'routes' | 'departures' | 'seats' | 'payment' | 'receipt';
-type View = 'booking' | 'profile';
+type View = 'booking' | 'profile' | 'bookings' | 'admin';
 
 const STEP_INDEX: Record<Step, number> = { routes: 0, departures: 1, seats: 2, payment: 3, receipt: 4 };
 
@@ -28,6 +31,7 @@ function App() {
   const [paymentRef, setPaymentRef] = useState<string>('');
 
   const isSignedIn = Boolean(user);
+  const canUseAdmin = Boolean(user && isAdminEmail(user.email) && user.emailVerified);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -44,7 +48,11 @@ function App() {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 gradient-mesh">
-      <Header onOpenProfile={() => setView('profile')} />
+      <Header
+        onOpenProfile={() => setView('profile')}
+        onOpenBookings={() => setView('bookings')}
+        onOpenAdmin={() => setView('admin')}
+      />
       <main className="flex-1">
         {authLoading && (
           <div className="flex items-center justify-center py-24">
@@ -53,6 +61,8 @@ function App() {
         )}
         {!authLoading && !user && <SignInGate />}
         {!authLoading && user && view === 'profile' && <Profile onBack={() => setView('booking')} />}
+        {!authLoading && user && view === 'bookings' && <MyBookings onBack={() => setView('booking')} />}
+        {!authLoading && canUseAdmin && view === 'admin' && <Admin onBack={() => setView('booking')} />}
         {!authLoading && user && view === 'booking' && (
           <>
             {step !== 'receipt' && <BookingSteps current={STEP_INDEX[step]} />}
@@ -99,7 +109,7 @@ function App() {
               />
             )}
             {step === 'receipt' && bookingIds.length > 0 && (
-              <Receipt bookingIds={bookingIds} paymentRef={paymentRef} onDone={startOver} />
+              <Receipt paymentRef={paymentRef} onDone={startOver} />
             )}
           </>
         )}

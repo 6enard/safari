@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { signOut } from 'firebase/auth';
-import { ChevronDown, LogIn, LogOut, UserCircle } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, LogIn, LogOut, Ticket, CircleUser as UserCircle } from 'lucide-react';
 import { AuthDialog } from '@/components/AuthDialog';
 import { useAuth } from '@/lib/authContext';
+import { isAdminEmail } from '@/lib/adminApi';
 import { auth } from '@/lib/firebase';
 
 type Props = {
   onOpenProfile: () => void;
+  onOpenBookings: () => void;
+  onOpenAdmin: () => void;
 };
 
-export function AuthControls({ onOpenProfile }: Props) {
+export function AuthControls({ onOpenProfile, onOpenBookings, onOpenAdmin }: Props) {
   const { user, loading } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,6 +53,7 @@ export function AuthControls({ onOpenProfile }: Props) {
   }
 
   const label = user.displayName ?? user.email ?? 'Account';
+  const isAdmin = isAdminEmail(user.email) && user.emailVerified;
   const initial = label.charAt(0).toUpperCase();
 
   async function handleSignOut() {
@@ -88,6 +92,28 @@ export function AuthControls({ onOpenProfile }: Props) {
           >
             <UserCircle className="h-4 w-4" /> My profile
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMenuOpen(false);
+              onOpenBookings();
+            }}
+            className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-brand-50 hover:text-brand-700"
+          >
+            <Ticket className="h-4 w-4" /> My bookings
+          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                onOpenAdmin();
+              }}
+              className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-brand-50 hover:text-brand-700"
+            >
+              <LayoutDashboard className="h-4 w-4" /> Admin console
+            </button>
+          )}
           <button
             type="button"
             onClick={handleSignOut}

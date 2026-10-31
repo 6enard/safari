@@ -57,9 +57,9 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
         const seats = await db.listBookedSeats(departure.id);
         if (!active) return;
         setTakenSeats(seats);
-      } catch (e: any) {
+      } catch (e) {
         if (!active) return;
-        setError(e?.message ?? 'Failed to load seats');
+        setError(e instanceof Error ? e.message : 'Failed to load seats');
       }
       setLoading(false);
     })();

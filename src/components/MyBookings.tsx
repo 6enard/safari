@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Armchair, Bus, Calendar, Clock, Loader as Loader2, MapPin, Ticket } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Armchair, Bus, Calendar, ChevronRight, Clock, Loader as Loader2, MapPin, Ticket } from 'lucide-react';
 import { db, type BookingGroup } from '@/lib/db';
 import { formatDate, formatDateTime, formatKes, formatTime, refundStatusLabel } from '@/lib/format';
+import { BookingDetailDialog } from '@/components/BookingDetailDialog';
 
 type Props = {
   onBack: () => void;
@@ -19,6 +20,7 @@ export function MyBookings({ onBack }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('upcoming');
+  const [openGroup, setOpenGroup] = useState<BookingGroup | null>(null);
 
   async function load() {
     setLoading(true);
@@ -202,6 +204,13 @@ export function MyBookings({ onBack }: Props) {
                   <div className="text-left sm:text-right">
                     <p className="text-xs text-slate-500">{seats} {seats === 1 ? 'seat' : 'seats'} paid</p>
                     <p className="text-lg font-bold text-brand-700">{formatKes(total)}</p>
+                    <button
+                      type="button"
+                      onClick={() => setOpenGroup(group)}
+                      className="mt-3 inline-flex items-center gap-1 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 transition-all hover:bg-brand-100"
+                    >
+                      View details <ChevronRight className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </li>
@@ -209,6 +218,8 @@ export function MyBookings({ onBack }: Props) {
           })}
         </ul>
       )}
+
+      {openGroup && <BookingDetailDialog group={openGroup} onClose={() => setOpenGroup(null)} />}
     </div>
   );
 }

@@ -112,7 +112,7 @@ Deno.serve(async (req: Request) => {
     if (action === 'mine' || action === 'receipt') {
       let query = supabase
         .from('bookings')
-        .select('*, departures(*, routes(*), vehicles(plate_number, vehicle_name))')
+        .select('*, departures(*, routes(*), vehicles(plate_number, vehicle_name, drivers(full_name, phone)))')
         .eq('user_id', userId)
         .in('status', ['confirmed', 'cancelled']);
       if (action === 'receipt') {

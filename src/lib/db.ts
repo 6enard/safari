@@ -49,6 +49,7 @@ export type BookingGroup = {
   bookings: Booking[];
   departure: Departure;
   route: Route;
+  driver: DriverInfo | null;
   created_at: string;
 };
 
@@ -58,8 +59,13 @@ type DepartureRow = Omit<Departure, 'vehicle_name' | 'plate_number'> & {
   vehicles: { plate_number: string; vehicle_name: string } | null;
 };
 
+export type DriverInfo = { full_name: string; phone: string };
+
 type BookingRow = Booking & {
-  departures: DepartureRow & { routes: Route };
+  departures: Omit<DepartureRow, 'vehicles'> & {
+    routes: Route;
+    vehicles: { plate_number: string; vehicle_name: string; drivers: DriverInfo | null } | null;
+  };
 };
 
 function toDeparture(row: DepartureRow): Departure {
@@ -85,6 +91,7 @@ function groupBookings(rows: BookingRow[]): BookingGroup[] {
       bookings: [booking],
       departure: toDeparture(departures),
       route: departures.routes,
+      driver: departures.vehicles?.drivers ?? null,
       created_at: row.created_at,
     });
   }

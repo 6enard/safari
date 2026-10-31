@@ -37,6 +37,16 @@ export function formatDateTime(iso: string): string {
   });
 }
 
+const REFUND_LABELS: Record<string, string> = {
+  pending: 'Refund pending',
+  refunded: 'Refunded',
+  not_refunded: 'No refund',
+};
+
+export function refundStatusLabel(status: string | null): string {
+  return (status && REFUND_LABELS[status]) || 'Refund not set';
+}
+
 export function genPaymentRef(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
   let ref = '';

@@ -26,6 +26,8 @@ export type Departure = {
   created_at: string;
 };
 
+export type RefundStatus = 'pending' | 'refunded' | 'not_refunded';
+
 export type Booking = {
   id: string;
   user_id: string;
@@ -37,6 +39,9 @@ export type Booking = {
   payment_ref: string;
   status: string;
   created_at: string;
+  cancellation_reason: string | null;
+  refund_status: RefundStatus | null;
+  cancelled_at: string | null;
 };
 
 export type BookingGroup = {

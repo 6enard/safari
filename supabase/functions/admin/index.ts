@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const FIREBASE_API_KEY = 'AIzaSyB1QbZLaB7WbYlFwYaaA9Q7sbwisbuCBhA';
 const ADMIN_EMAIL = '6enard@gmail.com';
+const REFUND_STATUSES = ['pending', 'refunded', 'not_refunded'];
 
 const TABLE_FIELDS: Record<string, string[]> = {
   routes: ['origin', 'destination', 'distance_km', 'duration_hours', 'base_fare', 'popular'],
@@ -90,10 +91,23 @@ Deno.serve(async (req: Request) => {
     if (action === 'cancelBooking') {
       const bookingId = body.bookingId;
       if (typeof bookingId !== 'string') return jsonResponse({ error: 'Missing booking id.' }, 400);
+      const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+      if (reason.length < 3 || reason.length > 500) {
+        return jsonResponse({ error: 'Enter a reason for the cancellation (3 to 500 characters).' }, 400);
+      }
+      if (!REFUND_STATUSES.includes(body.refundStatus)) {
+        return jsonResponse({ error: 'Choose a refund status.' }, 400);
+      }
       const { error } = await supabase
         .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId);
+        .update({
+          status: 'cancelled',
+          cancellation_reason: reason,
+          refund_status: body.refundStatus,
+          cancelled_at: new Date().toISOString(),
+        })
+        .eq('id', bookingId)
+        .eq('status', 'confirmed');
       if (error) return jsonResponse({ error: error.message }, 400);
       return jsonResponse({ ok: true });
     }

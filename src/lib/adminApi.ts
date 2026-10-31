@@ -1,5 +1,5 @@
 import { callFunction } from '@/lib/functionsClient';
-import type { Route, Departure } from '@/lib/db';
+import type { Route, Departure, RefundStatus } from '@/lib/db';
 
 export const ADMIN_EMAIL = '6enard@gmail.com';
 
@@ -43,6 +43,9 @@ export type AdminBooking = {
   payment_ref: string;
   status: string;
   created_at: string;
+  cancellation_reason: string | null;
+  refund_status: RefundStatus | null;
+  cancelled_at: string | null;
   departures: AdminDeparture & {
     routes: Route;
     vehicles: { plate_number: string; vehicle_name: string } | null;
@@ -69,6 +72,6 @@ export const adminApi = {
     callFunction<{ row: unknown }>('admin', { action: 'save', table, id, row }, true),
   remove: (table: AdminTable, id: string) =>
     callFunction<{ ok: true }>('admin', { action: 'delete', table, id }, true),
-  cancelBooking: (bookingId: string) =>
-    callFunction<{ ok: true }>('admin', { action: 'cancelBooking', bookingId }, true),
+  cancelBooking: (bookingId: string, reason: string, refundStatus: RefundStatus) =>
+    callFunction<{ ok: true }>('admin', { action: 'cancelBooking', bookingId, reason, refundStatus }, true),
 };

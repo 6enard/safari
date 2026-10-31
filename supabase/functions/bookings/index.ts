@@ -114,7 +114,7 @@ Deno.serve(async (req: Request) => {
         .from('bookings')
         .select('*, departures(*, routes(*), vehicles(plate_number, vehicle_name))')
         .eq('user_id', userId)
-        .eq('status', 'confirmed');
+        .in('status', ['confirmed', 'cancelled']);
       if (action === 'receipt') {
         const { paymentRef } = body;
         if (!isNonEmptyString(paymentRef, 4, 40)) return jsonResponse({ error: 'Missing receipt number.' }, 400);

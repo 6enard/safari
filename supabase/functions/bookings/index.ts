@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const FIREBASE_API_KEY = 'AIzaSyB1QbZLaB7WbYlFwYaaA9Q7sbwisbuCBhA';
-const PAYMENT_METHODS = ['M-Pesa', 'Card', 'Cash'];
+const PAYMENT_METHODS = ['M-Pesa', 'Card', 'Cash'] as const;
 const SEAT_COUNT = 10;
 
 const jsonResponse = (body: unknown, status = 200) =>

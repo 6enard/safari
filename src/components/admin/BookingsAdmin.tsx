@@ -98,6 +98,22 @@ export function BookingsAdmin({ data, onChanged }: Props) {
     });
   }, [departuresWithInfo, search]);
 
+  // Group filtered trips by date (newest date first, latest time first within a date)
+  const grouped = useMemo(() => {
+    const map = new Map<string, typeof filtered>();
+    for (const item of filtered) {
+      const list = map.get(item.dep.departure_date) ?? [];
+      list.push(item);
+      map.set(item.dep.departure_date, list);
+    }
+    return [...map.entries()]
+      .map(([date, items]) => ({
+        date,
+        items: items.sort((a, b) => b.dep.departure_time.localeCompare(a.dep.departure_time)),
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [filtered]);
+
   const [selectedDepartureIdx, setSelectedDepartureIdx] = useState(0);
   const current = filtered[selectedDepartureIdx];
 
@@ -296,44 +312,62 @@ export function BookingsAdmin({ data, onChanged }: Props) {
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-          {/* Trip list */}
-          <div className="space-y-2 lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1">
-            {filtered.map((item, idx) => {
-              const active = idx === selectedDepartureIdx;
-              const route = item.route;
-              const vehicle = item.vehicle;
+          {/* Trip list grouped by date (newest first) */}
+          <div className="space-y-4 lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1">
+            {grouped.map((group) => {
+              const bookedSeats = group.items.reduce((sum, it) => sum + it.bookedCount, 0);
               return (
-                <button
-                  key={item.dep.id}
-                  type="button"
-                  onClick={() => { setSelectedDepartureIdx(idx); setSelectedSeat(null); }}
-                  className={[
-                    'w-full rounded-xl border p-4 text-left transition-all',
-                    active
-                      ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300 shadow-sm'
-                      : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/50',
-                  ].join(' ')}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-semibold text-slate-900">
-                      {route ? `${route.origin} - ${route.destination}` : 'Unknown route'}
-                    </p>
-                    <span className={[
-                      'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold',
-                      item.bookedCount === SEAT_COUNT ? 'bg-red-100 text-red-700' : item.bookedCount > 0 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500',
-                    ].join(' ')}>
-                      {item.bookedCount}/{SEAT_COUNT}
+                <div key={group.date}>
+                  <div className="sticky top-0 z-10 mb-2 flex items-center justify-between rounded-lg bg-slate-100/90 px-3 py-2 backdrop-blur-sm">
+                    <span className="inline-flex items-center gap-2 text-sm font-bold text-slate-800">
+                      <Calendar className="h-4 w-4 text-brand-600" />
+                      {formatDate(group.date)}
+                    </span>
+                    <span className="text-xs font-medium text-slate-500">
+                      {group.items.length} {group.items.length === 1 ? 'trip' : 'trips'} · {bookedSeats} {bookedSeats === 1 ? 'seat' : 'seats'}
                     </span>
                   </div>
-                  <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
-                    <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{formatDate(item.dep.departure_date)}</span>
-                    <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime(item.dep.departure_time)}</span>
-                  </p>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
-                    <Bus className="h-3 w-3" />
-                    {vehicle ? `${vehicle.vehicle_name} · ${vehicle.plate_number}` : 'No matatu assigned'}
-                  </p>
-                </button>
+                  <div className="space-y-2">
+                    {group.items.map((item) => {
+                      const idx = filtered.indexOf(item);
+                      const active = idx === selectedDepartureIdx;
+                      const route = item.route;
+                      const vehicle = item.vehicle;
+                      return (
+                        <button
+                          key={item.dep.id}
+                          type="button"
+                          onClick={() => { setSelectedDepartureIdx(idx); setSelectedSeat(null); }}
+                          className={[
+                            'w-full rounded-xl border p-4 text-left transition-all',
+                            active
+                              ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300 shadow-sm'
+                              : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/50',
+                          ].join(' ')}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-semibold text-slate-900">
+                              {route ? `${route.origin} - ${route.destination}` : 'Unknown route'}
+                            </p>
+                            <span className={[
+                              'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold',
+                              item.bookedCount === SEAT_COUNT ? 'bg-red-100 text-red-700' : item.bookedCount > 0 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500',
+                            ].join(' ')}>
+                              {item.bookedCount}/{SEAT_COUNT}
+                            </span>
+                          </div>
+                          <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
+                            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime(item.dep.departure_time)}</span>
+                          </p>
+                          <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
+                            <Bus className="h-3 w-3" />
+                            {vehicle ? `${vehicle.vehicle_name} · ${vehicle.plate_number}` : 'No matatu assigned'}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>

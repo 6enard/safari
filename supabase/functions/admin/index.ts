@@ -62,7 +62,8 @@ Deno.serve(async (req: Request) => {
     if (!authResult.ok) return jsonResponse({ error: authResult.error }, authResult.status);
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const { action, table, id, row } = await req.json();
+    const body = await req.json();
+    const { action, table, id, row } = body;
 
     if (action === 'load') {
       const [routes, departures, vehicles, drivers, bookings] = await Promise.all([

@@ -109,12 +109,26 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ ids: (data ?? []).map((r) => r.id) });
     }
 
+    if (action === 'dismissCancelled') {
+      const { paymentRef } = body;
+      if (!isNonEmptyString(paymentRef, 4, 40)) return jsonResponse({ error: 'Missing receipt number.' }, 400);
+      const { error } = await supabase
+        .from('bookings')
+        .update({ dismissed_by_user: true })
+        .eq('user_id', userId)
+        .eq('payment_ref', paymentRef)
+        .eq('status', 'cancelled');
+      if (error) return jsonResponse({ error: error.message }, 500);
+      return jsonResponse({ ok: true });
+    }
+
     if (action === 'mine' || action === 'receipt') {
       let query = supabase
         .from('bookings')
-        .select('*, departures(*, routes(*), vehicles(plate_number, vehicle_name, drivers(full_name, phone)))')
+        .select('*, departures(*, routes(*), vehicles(plate_number, vehicle_name, drivers(full_name, phone, photo_url)))')
         .eq('user_id', userId)
-        .in('status', ['confirmed', 'cancelled']);
+        .in('status', ['confirmed', 'cancelled'])
+        .eq('dismissed_by_user', false);
       if (action === 'receipt') {
         const { paymentRef } = body;
         if (!isNonEmptyString(paymentRef, 4, 40)) return jsonResponse({ error: 'Missing receipt number.' }, 400);

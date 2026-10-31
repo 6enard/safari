@@ -9,6 +9,8 @@ const corsHeaders = {
 const FIREBASE_API_KEY = 'AIzaSyB1QbZLaB7WbYlFwYaaA9Q7sbwisbuCBhA';
 const ADMIN_EMAIL = '6enard@gmail.com';
 const REFUND_STATUSES = ['pending', 'refunded', 'not_refunded'];
+const PHOTO_TYPES = new Map([['image/jpeg', 'jpg'], ['image/png', 'png'], ['image/webp', 'webp']]);
+const MAX_PHOTO_BASE64 = 2_800_000;
 
 const TABLE_FIELDS: Record<string, string[]> = {
   routes: ['origin', 'destination', 'distance_km', 'duration_hours', 'base_fare', 'popular'],
@@ -110,6 +112,26 @@ Deno.serve(async (req: Request) => {
         .eq('status', 'confirmed');
       if (error) return jsonResponse({ error: error.message }, 400);
       return jsonResponse({ ok: true });
+    }
+
+    if (action === 'uploadDriverPhoto') {
+      const { driverId, contentType, data } = body;
+      if (typeof driverId !== 'string') return jsonResponse({ error: 'Missing driver.' }, 400);
+      const extension = PHOTO_TYPES.get(contentType);
+      if (!extension) return jsonResponse({ error: 'Use a JPG, PNG or WebP image.' }, 400);
+      if (typeof data !== 'string' || data.length === 0 || data.length > MAX_PHOTO_BASE64) {
+        return jsonResponse({ error: 'The photo must be smaller than 2 MB.' }, 400);
+      }
+      const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+      const path = `drivers/${driverId}-${Date.now()}.${extension}`;
+      const { error: uploadError } = await supabase.storage
+        .from('driver-photos')
+        .upload(path, bytes, { contentType, upsert: false });
+      if (uploadError) return jsonResponse({ error: uploadError.message }, 500);
+      const photoUrl = supabase.storage.from('driver-photos').getPublicUrl(path).data.publicUrl;
+      const { error } = await supabase.from('drivers').update({ photo_url: photoUrl }).eq('id', driverId);
+      if (error) return jsonResponse({ error: error.message }, 400);
+      return jsonResponse({ photo_url: photoUrl });
     }
 
     if (typeof table !== 'string' || !(table in TABLE_FIELDS)) {

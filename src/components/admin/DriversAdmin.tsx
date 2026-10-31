@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { Pencil, Plus, Phone, Mail, IdCard, UserRound } from 'lucide-react';
+import { Pencil, Plus, Phone, Mail, IdCard, ImagePlus, UserRound, Loader as Loader2 } from 'lucide-react';
 import { adminApi, errorText, type AdminData, type AdminDriver } from '@/lib/adminApi';
 import { DeleteButton, Field, FormError, FormModal, SubmitRow, inputClass } from '@/components/admin/AdminShared';
 
@@ -11,6 +11,16 @@ type Props = {
 type Draft = { full_name: string; phone: string; email: string; license_number: string };
 
 const emptyDraft: Draft = { full_name: '', phone: '', email: '', license_number: '' };
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+
+function readAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
+    reader.onerror = () => reject(new Error('Could not read that photo. Try another image.'));
+    reader.readAsDataURL(file);
+  });
+}
 
 export function DriversAdmin({ data, onChanged }: Props) {
   const [editing, setEditing] = useState<AdminDriver | 'new' | null>(null);
@@ -18,6 +28,7 @@ export function DriversAdmin({ data, onChanged }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   function openNew() {
     setDraft(emptyDraft);
@@ -71,6 +82,25 @@ export function DriversAdmin({ data, onChanged }: Props) {
     }
   }
 
+  async function handlePhoto(driver: AdminDriver, file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    if (file.size > MAX_PHOTO_BYTES) {
+      setError('The photo must be smaller than 2 MB.');
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const data = await readAsBase64(file);
+      await adminApi.uploadDriverPhoto(driver.id, file.type, data);
+      await onChanged();
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
   const set = (key: keyof Draft) => (e: ChangeEvent<HTMLInputElement>) =>
     setDraft((d) => ({ ...d, [key]: e.target.value }));
 
@@ -93,9 +123,13 @@ export function DriversAdmin({ data, onChanged }: Props) {
         {data.drivers.map((d) => (
           <article key={d.id} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
             <div className="flex items-center gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-700">
-                <UserRound className="h-5 w-5" />
-              </span>
+              {d.photo_url ? (
+                <img src={d.photo_url} alt={`Photo of ${d.full_name}`} loading="lazy" className="h-10 w-10 rounded-full object-cover ring-1 ring-brand-100" />
+              ) : (
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+                  <UserRound className="h-5 w-5" />
+                </span>
+              )}
               <p className="font-bold text-slate-900">{d.full_name}</p>
             </div>
             <div className="mt-4 space-y-2 text-sm text-slate-600">
@@ -120,6 +154,36 @@ export function DriversAdmin({ data, onChanged }: Props) {
       {editing && (
         <FormModal title={editing === 'new' ? 'Add a driver' : 'Edit driver'} onClose={() => setEditing(null)}>
           <form onSubmit={handleSave} className="space-y-4 p-5 sm:p-6">
+            {editing !== 'new' && (
+              <div>
+                <span className="mb-1 block text-sm font-medium text-slate-700">Driver photo</span>
+                <div className="flex items-center gap-4">
+                  {(data.drivers.find((d) => d.id === editing.id) ?? editing).photo_url ? (
+                    <img
+                      src={(data.drivers.find((d) => d.id === editing.id) ?? editing).photo_url ?? ''}
+                      alt="Current driver photo"
+                      className="h-16 w-16 rounded-xl object-cover ring-1 ring-brand-100"
+                    />
+                  ) : (
+                    <span className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+                      <UserRound className="h-7 w-7" />
+                    </span>
+                  )}
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-700 transition-all hover:bg-brand-100">
+                    {uploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                    {uploadingPhoto ? 'Uploading...' : 'Upload photo'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      disabled={uploadingPhoto}
+                      onChange={(e) => handlePhoto(editing, e.target.files?.[0])}
+                    />
+                  </label>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">JPG, PNG or WebP, up to 2 MB. The photo saves as soon as it uploads.</p>
+              </div>
+            )}
             <Field label="Full name">
               <input className={inputClass} value={draft.full_name} onChange={set('full_name')} />
             </Field>

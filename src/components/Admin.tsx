@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Bus, Calendar, Loader as Loader2, Route as RouteIcon, ShieldCheck, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, Ban, Bus, Calendar, Loader as Loader2, Route as RouteIcon, ShieldCheck, Ticket, Users } from 'lucide-react';
 import { adminApi, type AdminData } from '@/lib/adminApi';
 import { RoutesAdmin } from '@/components/admin/RoutesAdmin';
 import { SchedulesAdmin } from '@/components/admin/SchedulesAdmin';
 import { VehiclesAdmin } from '@/components/admin/VehiclesAdmin';
 import { DriversAdmin } from '@/components/admin/DriversAdmin';
 import { BookingsAdmin } from '@/components/admin/BookingsAdmin';
+import { CancellationsAdmin } from '@/components/admin/CancellationsAdmin';
 
 type Props = {
   onBack: () => void;
 };
 
-type Tab = 'routes' | 'schedules' | 'vehicles' | 'drivers' | 'bookings';
+type Tab = 'routes' | 'schedules' | 'vehicles' | 'drivers' | 'bookings' | 'cancellations';
 
-const VALID_TABS: Tab[] = ['routes', 'schedules', 'vehicles', 'drivers', 'bookings'];
+const VALID_TABS: Tab[] = ['routes', 'schedules', 'vehicles', 'drivers', 'bookings', 'cancellations'];
 
 function tabFromHash(): Tab {
   const hash = window.location.hash;
@@ -32,6 +33,7 @@ const TABS: { id: Tab; label: string; icon: typeof RouteIcon }[] = [
   { id: 'vehicles', label: 'Matatus', icon: Bus },
   { id: 'drivers', label: 'Drivers', icon: Users },
   { id: 'bookings', label: 'Bookings', icon: Ticket },
+  { id: 'cancellations', label: 'Cancellations', icon: Ban },
 ];
 
 export function Admin({ onBack }: Props) {
@@ -140,6 +142,7 @@ export function Admin({ onBack }: Props) {
           {tab === 'vehicles' && <VehiclesAdmin data={data} onChanged={load} />}
           {tab === 'drivers' && <DriversAdmin data={data} onChanged={load} />}
           {tab === 'bookings' && <BookingsAdmin data={data} onChanged={load} />}
+          {tab === 'cancellations' && <CancellationsAdmin data={data} />}
         </>
       )}
     </div>

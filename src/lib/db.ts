@@ -59,7 +59,7 @@ type DepartureRow = Omit<Departure, 'vehicle_name' | 'plate_number'> & {
   vehicles: { plate_number: string; vehicle_name: string } | null;
 };
 
-export type DriverInfo = { full_name: string; phone: string };
+export type DriverInfo = { full_name: string; phone: string; photo_url: string | null };
 
 type BookingRow = Booking & {
   departures: Omit<DepartureRow, 'vehicles'> & {
@@ -165,6 +165,10 @@ export const db = {
       true,
     );
     return { ids };
+  },
+
+  async dismissCancelledBookings(paymentRef: string): Promise<void> {
+    await callBookings<{ ok: true }>({ action: 'dismissCancelled', paymentRef }, true);
   },
 
   async listBookingsForUser(): Promise<BookingGroup[]> {

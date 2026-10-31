@@ -1,5 +1,5 @@
-import { useEffect, type ReactNode } from 'react';
-import { Armchair, Bus, Calendar, Clock, MapPin, Phone, Ticket, User as UserIcon, X } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Armchair, Bus, Calendar, ChevronRight, Clock, MapPin, Phone, Ticket, User as UserIcon, X } from 'lucide-react';
 import type { BookingGroup } from '@/lib/db';
 import { formatDate, formatDateTime, formatKes, formatTime, refundStatusLabel } from '@/lib/format';
 
@@ -9,6 +9,8 @@ type Props = {
 };
 
 export function BookingDetailDialog({ group, onClose }: Props) {
+  const [showDriver, setShowDriver] = useState(false);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
@@ -65,23 +67,42 @@ export function BookingDetailDialog({ group, onClose }: Props) {
         <div className="space-y-5 overflow-y-auto px-5 py-5">
           <Section title="Driver">
             {group.driver ? (
-              <div className="flex items-center gap-3">
-                <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                  <UserIcon className="h-5 w-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-900">{group.driver.full_name}</p>
-                  <p className="text-xs text-slate-500">Driver</p>
-                </div>
-                {group.driver.phone && (
-                  <a
-                    href={`tel:${group.driver.phone.replace(/\s+/g, '')}`}
-                    className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 transition-all hover:bg-brand-100"
-                  >
-                    <Phone className="h-4 w-4" /> {group.driver.phone}
-                  </a>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowDriver((open) => !open)}
+                  aria-expanded={showDriver}
+                  className="flex w-full items-center gap-3 rounded-lg p-1 text-left transition-colors hover:bg-slate-50"
+                >
+                  <DriverAvatar name={group.driver.full_name} photoUrl={group.driver.photo_url} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-900">{group.driver.full_name}</p>
+                    <p className="text-xs text-slate-500">Tap to view driver profile</p>
+                  </div>
+                  <ChevronRight className={`h-4 w-4 flex-shrink-0 text-slate-400 transition-transform ${showDriver ? 'rotate-90' : ''}`} />
+                </button>
+                {showDriver && (
+                  <div className="mt-3 overflow-hidden rounded-xl border border-brand-100 bg-brand-50/40 animate-fade-in">
+                    <DriverAvatar name={group.driver.full_name} photoUrl={group.driver.photo_url} size="lg" />
+                    <div className="space-y-3 p-4">
+                      <div>
+                        <p className="text-lg font-bold text-slate-900">{group.driver.full_name}</p>
+                        <p className="text-xs text-slate-500">
+                          Driving {group.departure.vehicle_name} · {group.departure.plate_number}
+                        </p>
+                      </div>
+                      {group.driver.phone && (
+                        <a
+                          href={`tel:${group.driver.phone.replace(/\s+/g, '')}`}
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-500/25 transition-all hover:brightness-110"
+                        >
+                          <Phone className="h-4 w-4" /> Call {group.driver.phone}
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 )}
-              </div>
+              </>
             ) : (
               <p className="text-sm text-slate-500">A driver has not been assigned to this matatu yet.</p>
             )}
@@ -127,6 +148,31 @@ export function BookingDetailDialog({ group, onClose }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+function DriverAvatar({ name, photoUrl, size }: { name: string; photoUrl: string | null; size: 'sm' | 'lg' }) {
+  if (photoUrl) {
+    return (
+      <img
+        src={photoUrl}
+        alt={`Photo of ${name}`}
+        loading="lazy"
+        className={size === 'lg' ? 'h-48 w-full object-cover' : 'h-10 w-10 flex-shrink-0 rounded-full object-cover ring-1 ring-brand-100'}
+      />
+    );
+  }
+  return (
+    <span
+      className={
+        size === 'lg'
+          ? 'flex h-40 w-full items-center justify-center bg-brand-50 text-brand-500'
+          : 'inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600'
+      }
+      aria-label={`No photo for ${name}`}
+    >
+      <UserIcon className={size === 'lg' ? 'h-14 w-14' : 'h-5 w-5'} />
+    </span>
   );
 }
 

@@ -30,6 +30,7 @@ export type AdminDriver = {
   phone: string;
   email: string | null;
   license_number: string;
+  photo_url: string | null;
 };
 
 export type AdminBooking = {
@@ -74,4 +75,6 @@ export const adminApi = {
     callFunction<{ ok: true }>('admin', { action: 'delete', table, id }, true),
   cancelBooking: (bookingId: string, reason: string, refundStatus: RefundStatus) =>
     callFunction<{ ok: true }>('admin', { action: 'cancelBooking', bookingId, reason, refundStatus }, true),
+  uploadDriverPhoto: (driverId: string, contentType: string, data: string) =>
+    callFunction<{ photo_url: string }>('admin', { action: 'uploadDriverPhoto', driverId, contentType, data }, true),
 };

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Armchair, Bus, Calendar, ChevronRight, Clock, Loader as Loader2, MapPin, Ticket } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Armchair, Bus, Calendar, ChevronRight, Clock, Loader as Loader2, MapPin, Ticket, Trash2 } from 'lucide-react';
 import { db, type BookingGroup } from '@/lib/db';
 import { formatDate, formatDateTime, formatKes, formatTime, refundStatusLabel } from '@/lib/format';
 import { BookingDetailDialog } from '@/components/BookingDetailDialog';
@@ -21,6 +21,8 @@ export function MyBookings({ onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('upcoming');
   const [openGroup, setOpenGroup] = useState<BookingGroup | null>(null);
+  const [removingRef, setRemovingRef] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -37,6 +39,23 @@ export function MyBookings({ onBack }: Props) {
   useEffect(() => {
     load();
   }, []);
+
+  async function handleRemoveCancelled(paymentRef: string) {
+    setRemovingRef(paymentRef);
+    setRemoveError(null);
+    try {
+      await db.dismissCancelledBookings(paymentRef);
+      setGroups((prev) =>
+        prev
+          .map((g) => (g.payment_ref === paymentRef ? { ...g, bookings: g.bookings.filter((b) => b.status !== 'cancelled') } : g))
+          .filter((g) => g.bookings.length > 0),
+      );
+    } catch (err) {
+      setRemoveError(err instanceof Error ? err.message : 'Could not remove these bookings. Please try again.');
+    } finally {
+      setRemovingRef(null);
+    }
+  }
 
   const now = Date.now();
   const upcoming = useMemo(
@@ -121,6 +140,10 @@ export function MyBookings({ onBack }: Props) {
         </div>
       )}
 
+      {removeError && (
+        <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{removeError}</p>
+      )}
+
       {!loading && !error && visible.length > 0 && (
         <ul className="space-y-4">
           {visible.map((group, idx) => {
@@ -196,6 +219,17 @@ export function MyBookings({ onBack }: Props) {
                           </li>
                         ))}
                       </ul>
+                    )}
+                    {cancelled.length > 0 && (
+                      <button
+                        type="button"
+                        disabled={removingRef === group.payment_ref}
+                        onClick={() => handleRemoveCancelled(group.payment_ref)}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 transition-colors hover:bg-white hover:text-red-600 disabled:opacity-50"
+                      >
+                        {removingRef === group.payment_ref ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        {removingRef === group.payment_ref ? 'Removing...' : 'Remove cancelled seats'}
+                      </button>
                     )}
                     <p className="text-xs text-slate-500">
                       Receipt <span className="font-mono font-semibold text-slate-700">{group.payment_ref}</span> · Booked {formatDateTime(group.created_at)}

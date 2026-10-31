@@ -3,11 +3,11 @@
   "functions": {
     "admin": {
       "hasChanged": false,
-      "hash": "1d5ee81b09d087c0f960b626fe4090d0b10c59b3c871f2e692252eb117c40016"
+      "hash": "e32ea3af349eae256622bed95f2ea87ad4c2d38c6d2e1104e1b1c75e6a35fbf2"
     },
     "bookings": {
       "hasChanged": false,
-      "hash": "9f9f6e5e15a5ee654953bb729db9761c4a9580becc374ed104847d4098153a40"
+      "hash": "8513a23517c5c94cb25270f54b935f8180394fdcc10994c27f0303814bd238ce"
     }
   }
 }

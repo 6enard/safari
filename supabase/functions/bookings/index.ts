@@ -253,7 +253,7 @@ Deno.serve(async (req: Request) => {
     if (action === 'myParcels') {
       const { data, error } = await supabase
         .from('parcels')
-        .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time)')
+        .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time, vehicles(plate_number, vehicle_name))')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) return jsonResponse({ error: error.message }, 500);

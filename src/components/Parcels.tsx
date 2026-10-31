@@ -1,22 +1,18 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Package, Plus, Trash2, Loader as Loader2, MapPin, Phone, User as UserIcon, Clock, Calendar, PackageCheck, PackageOpen, Truck, X, CircleCheck as CheckCircle2, Weight, Tag, Route as RouteIcon } from 'lucide-react';
-import { db, type Parcel, type ParcelType, type Route } from '@/lib/db';
-import { useAuth } from '@/lib/authContext';
+import {
+  ArrowLeft, Package, Plus, Trash2, Loader as Loader2, MapPin, Phone, User as UserIcon,
+  Clock, Calendar, PackageCheck, PackageOpen, Truck, X, CircleCheck as CheckCircle2,
+  Weight, Tag, Route as RouteIcon, Bus,
+} from 'lucide-react';
+import { db, type Parcel } from '@/lib/db';
 import { formatKes, formatDate, formatDateTime, formatTime } from '@/lib/format';
+import { ParcelSendFlow } from '@/components/ParcelSendFlow';
 
 type Props = {
   onBack: () => void;
 };
 
 type Tab = 'list' | 'send';
-
-const PARCEL_TYPES: { id: ParcelType; label: string }[] = [
-  { id: 'document', label: 'Documents' },
-  { id: 'electronics', label: 'Electronics' },
-  { id: 'clothing', label: 'Clothing' },
-  { id: 'food', label: 'Food / Groceries' },
-  { id: 'other', label: 'Other' },
-];
 
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Package; color: string; bg: string; ring: string }> = {
   pending: { label: 'Pending', icon: PackageOpen, color: 'text-amber-700', bg: 'bg-amber-50', ring: 'ring-amber-200' },
@@ -25,42 +21,27 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof Package; color
   cancelled: { label: 'Cancelled', icon: X, color: 'text-red-700', bg: 'bg-red-50', ring: 'ring-red-200' },
 };
 
-const inputClass =
-  'w-full rounded-xl border border-slate-300 bg-slate-50/50 px-4 py-2.5 text-sm outline-none transition-all focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200';
+const PARCEL_TYPE_LABELS: Record<string, string> = {
+  document: 'Documents',
+  electronics: 'Electronics',
+  clothing: 'Clothing',
+  food: 'Food / Groceries',
+  other: 'Other',
+};
 
 export function Parcels({ onBack }: Props) {
-  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>('list');
   const [parcels, setParcels] = useState<Parcel[]>([]);
-  const [routes, setRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Send form state
-  const [senderName, setSenderName] = useState(user?.displayName ?? '');
-  const [senderPhone, setSenderPhone] = useState('');
-  const [recipientName, setRecipientName] = useState('');
-  const [recipientPhone, setRecipientPhone] = useState('');
-  const [pickupLocation, setPickupLocation] = useState('');
-  const [dropoffLocation, setDropoffLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [weightKg, setWeightKg] = useState('1');
-  const [parcelType, setParcelType] = useState<ParcelType>('document');
-  const [routeId, setRouteId] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<{ tracking: string; fee: number } | null>(null);
-
-  // Delete state
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
     setError(null);
     try {
-      const [p, r] = await Promise.all([db.listMyParcels(), db.listRoutes()]);
-      setParcels(p);
-      setRoutes(r);
+      setParcels(await db.listMyParcels());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load parcels.');
     } finally {
@@ -71,42 +52,6 @@ export function Parcels({ onBack }: Props) {
   useEffect(() => {
     load();
   }, []);
-
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      const result = await db.createParcel({
-        routeId: routeId || null,
-        departureId: null,
-        senderName: senderName.trim(),
-        senderPhone: senderPhone.trim(),
-        recipientName: recipientName.trim(),
-        recipientPhone: recipientPhone.trim(),
-        pickupLocation: pickupLocation.trim(),
-        dropoffLocation: dropoffLocation.trim(),
-        description: description.trim(),
-        weightKg: Number(weightKg),
-        parcelType,
-      });
-      setSuccess({ tracking: result.tracking_number, fee: result.fee });
-      setTab('list');
-      await load();
-      // Reset form
-      setRecipientName('');
-      setRecipientPhone('');
-      setPickupLocation('');
-      setDropoffLocation('');
-      setDescription('');
-      setWeightKg('1');
-      setParcelType('document');
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Could not send parcel.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
 
   async function handleDelete(parcelId: string) {
     setDeletingId(parcelId);
@@ -120,14 +65,11 @@ export function Parcels({ onBack }: Props) {
     }
   }
 
-  const valid =
-    senderName.trim().length >= 2 &&
-    senderPhone.trim().length >= 10 &&
-    recipientName.trim().length >= 2 &&
-    recipientPhone.trim().length >= 10 &&
-    pickupLocation.trim().length >= 2 &&
-    dropoffLocation.trim().length >= 2 &&
-    description.trim().length >= 3;
+  function handleParcelSent() {
+    setSuccess('Your parcel has been sent! You can track it below.');
+    setTab('list');
+    load();
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -150,7 +92,7 @@ export function Parcels({ onBack }: Props) {
       {success && (
         <div role="status" className="mb-6 flex items-center gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm font-medium text-brand-700 animate-fade-in">
           <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-          <span>Parcel sent! Tracking number <span className="font-mono font-bold">{success.tracking}</span> — fee {formatKes(success.fee)}.</span>
+          <span>{success}</span>
           <button type="button" onClick={() => setSuccess(null)} className="ml-auto text-brand-600 hover:text-brand-800">
             <X className="h-4 w-4" />
           </button>
@@ -211,6 +153,7 @@ export function Parcels({ onBack }: Props) {
               const status = STATUS_CONFIG[p.status] ?? STATUS_CONFIG.pending;
               const StatusIcon = status.icon;
               const canDelete = p.status === 'pending' || p.status === 'cancelled';
+              const vehicle = p.departures?.vehicles;
               return (
                 <li
                   key={p.id}
@@ -228,7 +171,7 @@ export function Parcels({ onBack }: Props) {
                       </p>
                       <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
                         <span className="inline-flex items-center gap-1.5 font-mono"><Package className="h-3.5 w-3.5" />{p.tracking_number}</span>
-                        <span className="inline-flex items-center gap-1.5"><Tag className="h-3.5 w-3.5" />{p.parcel_type}</span>
+                        <span className="inline-flex items-center gap-1.5"><Tag className="h-3.5 w-3.5" />{PARCEL_TYPE_LABELS[p.parcel_type] ?? p.parcel_type}</span>
                         <span className="inline-flex items-center gap-1.5"><Weight className="h-3.5 w-3.5" />{p.weight_kg} kg</span>
                         {p.routes && <span className="inline-flex items-center gap-1.5"><RouteIcon className="h-3.5 w-3.5" />{p.routes.origin} - {p.routes.destination}</span>}
                       </p>
@@ -253,15 +196,27 @@ export function Parcels({ onBack }: Props) {
                         </div>
                       </div>
                       <p className="text-sm text-slate-600"><span className="font-semibold">Description:</span> {p.description}</p>
+
+                      {/* Trip / vehicle info */}
+                      {p.departures && (
+                        <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Assigned trip</p>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-700">
+                            <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{formatDate(p.departures.departure_date)}</span>
+                            <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />{formatTime(p.departures.departure_time)}</span>
+                            {vehicle && (
+                              <span className="inline-flex items-center gap-1.5"><Bus className="h-3.5 w-3.5" />{vehicle.vehicle_name} · {vehicle.plate_number}</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       {p.admin_notes && (
                         <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-amber-200">
                           <span className="font-semibold">Admin note:</span> {p.admin_notes}
                         </p>
                       )}
-                      <p className="text-xs text-slate-500">
-                        Sent {formatDateTime(p.created_at)}
-                        {p.departures && <> · Assigned to trip on {formatDate(p.departures.departure_date)} at {formatTime(p.departures.departure_time)}</>}
-                      </p>
+                      <p className="text-xs text-slate-500">Sent {formatDateTime(p.created_at)}</p>
                     </div>
                     <div className="text-left sm:text-right">
                       <p className="text-xs text-slate-500">Delivery fee</p>
@@ -287,96 +242,7 @@ export function Parcels({ onBack }: Props) {
       )}
 
       {tab === 'send' && (
-        <form onSubmit={handleSend} className="space-y-6 animate-fade-in">
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Sender details</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Sender name</label>
-                <input className={inputClass} value={senderName} onChange={(e) => setSenderName(e.target.value)} required placeholder="Your name" />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Sender phone</label>
-                <input className={inputClass} type="tel" value={senderPhone} onChange={(e) => setSenderPhone(e.target.value)} required placeholder="0712 345 678" />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Recipient details</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Recipient name</label>
-                <input className={inputClass} value={recipientName} onChange={(e) => setRecipientName(e.target.value)} required placeholder="Who will receive it" />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Recipient phone</label>
-                <input className={inputClass} type="tel" value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} required placeholder="0712 345 678" />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Pickup & drop-off</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Pickup location</label>
-                <input className={inputClass} value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)} required placeholder="e.g. Nairobi CBD" />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Drop-off location</label>
-                <input className={inputClass} value={dropoffLocation} onChange={(e) => setDropoffLocation(e.target.value)} required placeholder="e.g. Mombasa town" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Route (optional)</label>
-              <select className={inputClass} value={routeId} onChange={(e) => setRouteId(e.target.value)}>
-                <option value="">No specific route</option>
-                {routes.map((r) => (
-                  <option key={r.id} value={r.id}>{r.origin} - {r.destination}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Parcel details</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">What are you sending?</label>
-                <textarea className={`${inputClass} min-h-[80px] resize-y`} value={description} onChange={(e) => setDescription(e.target.value)} required maxLength={500} placeholder="Describe the parcel contents" />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">Weight (kg)</label>
-                  <input className={inputClass} type="number" min="0.1" step="0.1" max="1000" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} required />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">Parcel type</label>
-                  <select className={inputClass} value={parcelType} onChange={(e) => setParcelType(e.target.value as ParcelType)}>
-                    {PARCEL_TYPES.map((t) => (
-                      <option key={t.id} value={t.id}>{t.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {submitError && (
-            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 animate-fade-in">
-              {submitError}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={!valid || submitting}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
-          >
-            {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending parcel...</> : <><Package className="h-4 w-4" /> Send parcel</>}
-          </button>
-        </form>
+        <ParcelSendFlow onDone={handleParcelSent} />
       )}
     </div>
   );

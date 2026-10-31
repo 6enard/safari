@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
-import { Armchair, Bus, Calendar, Clock, MapPin, Phone, User as UserIcon, X, Info, Search, Ticket, Download, Ban, Loader as Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Armchair, Bus, Calendar, Clock, MapPin, Phone, User as UserIcon, X, Info, Search, Ticket, Download, Ban, Loader as Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminApi, errorText, type AdminBooking, type AdminData } from '@/lib/adminApi';
 import { FormError, inputClass } from '@/components/admin/AdminShared';
-import { formatDate, formatKes, formatTime, formatDateTime } from '@/lib/format';
+import { formatDate, formatKes, formatTime, formatDateTime, toISO } from '@/lib/format';
 
 type Props = {
   data: AdminData;
@@ -17,6 +17,9 @@ const SEAT_ROWS: { left: number | null; right: [number, number] | null }[] = [
   { left: 5, right: [6, 7] },
   { left: 8, right: [9, 10] },
 ];
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function SeatSVG({ className }: { className?: string }) {
   return (
@@ -98,24 +101,101 @@ export function BookingsAdmin({ data, onChanged }: Props) {
     });
   }, [departuresWithInfo, search]);
 
-  // Group filtered trips by date (newest date first, latest time first within a date)
-  const grouped = useMemo(() => {
-    const map = new Map<string, typeof filtered>();
+  // Map of departure date -> trips (from the filtered set)
+  const tripsByDate = useMemo(() => {
+    const map = new Map<string, typeof departuresWithInfo>();
     for (const item of filtered) {
-      const list = map.get(item.dep.departure_date) ?? [];
-      list.push(item);
-      map.set(item.dep.departure_date, list);
+      const list = map.get(item.dep.departure_date);
+      if (list) {
+        list.push(item);
+      } else {
+        map.set(item.dep.departure_date, [item]);
+      }
     }
-    return [...map.entries()]
-      .map(([date, items]) => ({
-        date,
-        items: items.sort((a, b) => b.dep.departure_time.localeCompare(a.dep.departure_time)),
-      }))
-      .sort((a, b) => b.date.localeCompare(a.date));
+    return map;
   }, [filtered]);
 
-  const [selectedDepartureIdx, setSelectedDepartureIdx] = useState(0);
-  const current = filtered[selectedDepartureIdx];
+  const [viewYear, setViewYear] = useState(() => {
+    const dates = data.departures.map((d) => d.departure_date).sort();
+    const newest = dates.length ? dates[dates.length - 1] : null;
+    return newest ? new Date(newest + 'T00:00:00').getFullYear() : new Date().getFullYear();
+  });
+  const [viewMonth, setViewMonth] = useState(() => {
+    const dates = data.departures.map((d) => d.departure_date).sort();
+    const newest = dates.length ? dates[dates.length - 1] : null;
+    return newest ? new Date(newest + 'T00:00:00').getMonth() : new Date().getMonth();
+  });
+  const [selectedDate, setSelectedDate] = useState<string | null>(() => {
+    const dates = data.departures.map((d) => d.departure_date).sort();
+    return dates.length ? dates[dates.length - 1] : null;
+  });
+  const [selectedDepartureId, setSelectedDepartureId] = useState<string | null>(() => {
+    const sorted = [...data.departures].sort((a, b) =>
+      `${b.departure_date}${b.departure_time}`.localeCompare(`${a.departure_date}${a.departure_time}`),
+    );
+    return sorted[0]?.id ?? null;
+  });
+
+  const tripsForDate = useMemo(
+    () => (selectedDate ? tripsByDate.get(selectedDate) ?? [] : []),
+    [selectedDate, tripsByDate],
+  );
+
+  const current = useMemo(
+    () => filtered.find((it) => it.dep.id === selectedDepartureId) ?? null,
+    [filtered, selectedDepartureId],
+  );
+
+  // Keep the selection valid when the filtered list changes (e.g. when searching)
+  useEffect(() => {
+    if (filtered.length === 0) {
+      setSelectedDate(null);
+      setSelectedDepartureId(null);
+      return;
+    }
+    if (!selectedDate || !tripsByDate.has(selectedDate)) {
+      setSelectedDate(filtered[0].dep.departure_date);
+    }
+    if (!selectedDepartureId || !filtered.some((it) => it.dep.id === selectedDepartureId)) {
+      setSelectedDepartureId(filtered[0].dep.id);
+    }
+  }, [filtered, selectedDate, tripsByDate, selectedDepartureId]);
+
+  // Calendar grid for the current view month
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const firstOfMonth = new Date(viewYear, viewMonth, 1);
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const startWeekday = firstOfMonth.getDay();
+  const calendarCells: (Date | null)[] = [];
+  for (let i = 0; i < startWeekday; i++) calendarCells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) calendarCells.push(new Date(viewYear, viewMonth, d));
+  while (calendarCells.length % 7 !== 0) calendarCells.push(null);
+
+  function prevMonth() {
+    if (viewMonth === 0) {
+      setViewMonth(11);
+      setViewYear((y) => y - 1);
+    } else {
+      setViewMonth((m) => m - 1);
+    }
+  }
+  function nextMonth() {
+    if (viewMonth === 11) {
+      setViewMonth(0);
+      setViewYear((y) => y + 1);
+    } else {
+      setViewMonth((m) => m + 1);
+    }
+  }
+
+  function selectDate(iso: string) {
+    const trips = tripsByDate.get(iso);
+    if (!trips || trips.length === 0) return;
+    setSelectedDate(iso);
+    setSelectedDepartureId(trips[0].dep.id);
+    setSelectedSeat(null);
+  }
 
   const seatStates: SeatInfo[] = useMemo(() => {
     const states: SeatInfo[] = [];
@@ -231,7 +311,7 @@ export function BookingsAdmin({ data, onChanged }: Props) {
               className={`${inputClass} pl-10`}
               type="search"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setSelectedDepartureIdx(0); setSelectedSeat(null); }}
+              onChange={(e) => { setSearch(e.target.value); setSelectedSeat(null); }}
               placeholder="Search trips by route, plate, date..."
             />
           </div>
@@ -312,64 +392,147 @@ export function BookingsAdmin({ data, onChanged }: Props) {
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-          {/* Trip list grouped by date (newest first) */}
+          {/* Calendar + trips for the selected date */}
           <div className="space-y-4 lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1">
-            {grouped.map((group) => {
-              const bookedSeats = group.items.reduce((sum, it) => sum + it.bookedCount, 0);
-              return (
-                <div key={group.date}>
-                  <div className="sticky top-0 z-10 mb-2 flex items-center justify-between rounded-lg bg-slate-100/90 px-3 py-2 backdrop-blur-sm">
-                    <span className="inline-flex items-center gap-2 text-sm font-bold text-slate-800">
-                      <Calendar className="h-4 w-4 text-brand-600" />
-                      {formatDate(group.date)}
-                    </span>
-                    <span className="text-xs font-medium text-slate-500">
-                      {group.items.length} {group.items.length === 1 ? 'trip' : 'trips'} · {bookedSeats} {bookedSeats === 1 ? 'seat' : 'seats'}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {group.items.map((item) => {
-                      const idx = filtered.indexOf(item);
-                      const active = idx === selectedDepartureIdx;
-                      const route = item.route;
-                      const vehicle = item.vehicle;
-                      return (
-                        <button
-                          key={item.dep.id}
-                          type="button"
-                          onClick={() => { setSelectedDepartureIdx(idx); setSelectedSeat(null); }}
-                          className={[
-                            'w-full rounded-xl border p-4 text-left transition-all',
-                            active
-                              ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300 shadow-sm'
-                              : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/50',
-                          ].join(' ')}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="font-semibold text-slate-900">
-                              {route ? `${route.origin} - ${route.destination}` : 'Unknown route'}
-                            </p>
-                            <span className={[
-                              'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold',
-                              item.bookedCount === SEAT_COUNT ? 'bg-red-100 text-red-700' : item.bookedCount > 0 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500',
-                            ].join(' ')}>
-                              {item.bookedCount}/{SEAT_COUNT}
-                            </span>
-                          </div>
-                          <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
-                            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime(item.dep.departure_time)}</span>
-                          </p>
-                          <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
-                            <Bus className="h-3 w-3" />
-                            {vehicle ? `${vehicle.vehicle_name} · ${vehicle.plate_number}` : 'No matatu assigned'}
-                          </p>
-                        </button>
-                      );
-                    })}
-                  </div>
+            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                <button
+                  type="button"
+                  onClick={prevMonth}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-all hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 active:scale-95"
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-sm font-bold text-slate-800">
+                  {MONTHS[viewMonth]} {viewYear}
+                </span>
+                <button
+                  type="button"
+                  onClick={nextMonth}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-all hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 active:scale-95"
+                  aria-label="Next month"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="p-3">
+                <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  {WEEKDAYS.map((w) => (
+                    <span key={w} className="py-1">{w}</span>
+                  ))}
                 </div>
-              );
-            })}
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarCells.map((d, idx) => {
+                    if (!d) return <span key={idx} className="aspect-square" />;
+                    const iso = toISO(d);
+                    const isPast = d < today;
+                    const trips = tripsByDate.get(iso);
+                    const hasTrips = (trips?.length ?? 0) > 0;
+                    const isSelected = selectedDate === iso;
+                    const seatCount = trips?.reduce((s, t) => s + t.bookedCount, 0) ?? 0;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        disabled={!hasTrips}
+                        onClick={() => selectDate(iso)}
+                        className={[
+                          'relative flex aspect-square flex-col items-center justify-center rounded-lg text-xs font-semibold transition-all duration-200',
+                          isSelected
+                            ? 'bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-md ring-2 ring-brand-300'
+                            : hasTrips
+                              ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200 hover:bg-brand-100 hover:scale-105'
+                              : isPast
+                                ? 'cursor-default text-slate-300'
+                                : 'cursor-default text-slate-400',
+                        ].join(' ')}
+                      >
+                        {d.getDate()}
+                        {hasTrips && !isSelected && (
+                          <span className="mt-0.5 h-1 w-1 rounded-full bg-brand-500" />
+                        )}
+                        {hasTrips && (
+                          <span className={['absolute bottom-1 right-1 text-[8px] font-bold', isSelected ? 'text-white/80' : 'text-brand-600'].join(' ')}>
+                            {seatCount}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-[10px] text-slate-500">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="h-3 w-3 rounded-md bg-gradient-to-br from-brand-500 to-teal-600" /> Selected
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="h-3 w-3 rounded-md bg-brand-50 ring-1 ring-brand-200" /> Has trips
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="h-3 w-3 rounded-md bg-slate-100" /> No trips
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Trips for the selected date */}
+            {selectedDate ? (
+              tripsForDate.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 bg-white/60 p-6 text-center text-sm text-slate-400">
+                  No trips on {formatDate(selectedDate)}.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {formatDate(selectedDate)} · {tripsForDate.length} {tripsForDate.length === 1 ? 'trip' : 'trips'}
+                  </p>
+                  {tripsForDate.map((item) => {
+                    const active = current?.dep.id === item.dep.id;
+                    const route = item.route;
+                    const vehicle = item.vehicle;
+                    return (
+                      <button
+                        key={item.dep.id}
+                        type="button"
+                        onClick={() => { setSelectedDepartureId(item.dep.id); setSelectedSeat(null); }}
+                        className={[
+                          'w-full rounded-xl border p-4 text-left transition-all',
+                          active
+                            ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300 shadow-sm'
+                            : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/50',
+                        ].join(' ')}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold text-slate-900">
+                            {route ? `${route.origin} - ${route.destination}` : 'Unknown route'}
+                          </p>
+                          <span className={[
+                            'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold',
+                            item.bookedCount === SEAT_COUNT ? 'bg-red-100 text-red-700' : item.bookedCount > 0 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500',
+                          ].join(' ')}>
+                            {item.bookedCount}/{SEAT_COUNT}
+                          </span>
+                        </div>
+                        <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
+                          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime(item.dep.departure_time)}</span>
+                        </p>
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
+                          <Bus className="h-3 w-3" />
+                          {vehicle ? `${vehicle.vehicle_name} · ${vehicle.plate_number}` : 'No matatu assigned'}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              )
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-white/60 p-6 text-center text-sm text-slate-400">
+                <Calendar className="mx-auto mb-2 h-6 w-6 opacity-50" />
+                Click a highlighted date to see its trips.
+              </div>
+            )}
           </div>
 
           {/* Seat map + passenger detail */}

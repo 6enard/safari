@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { updateProfile } from 'firebase/auth';
 import { ArrowLeft, Mail, Calendar, User as UserIcon, Pencil, Loader as Loader2, Check, X } from 'lucide-react';
+import { EmailVerification } from '@/components/EmailVerification';
 import { useAuth } from '@/lib/authContext';
 import { auth } from '@/lib/firebase';
 import { formatDateTime } from '@/lib/format';
@@ -89,6 +90,8 @@ export function Profile({ onBack }: Props) {
           <Check className="h-4 w-4" /> Your profile has been updated.
         </div>
       )}
+
+      <EmailVerification />
 
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm animate-slide-up animate-delay-100">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">

@@ -80,7 +80,7 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
   const totalFare = departure.fare * selected.length;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
+    <div className="mx-auto max-w-5xl px-4 pt-10 pb-28 lg:py-10">
       <button
         onClick={onBack}
         className="group mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-brand-700"
@@ -278,12 +278,32 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
             ) : (
               <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400 animate-fade-in">
                 <User className="mx-auto mb-2 h-6 w-6 opacity-60" />
-                Pick one or more seats from the matatu layout to continue.
+                Tap one or more seats on the matatu layout. Your total and the continue button will appear here.
               </div>
             )}
           </div>
         </aside>
       </div>
+
+      {selected.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur lg:hidden animate-slide-up">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium uppercase tracking-wide text-slate-500">
+                {selected.length} {selected.length === 1 ? 'seat' : 'seats'} · {selected.join(', ')}
+              </p>
+              <p className="text-lg font-bold text-brand-700">{formatKes(totalFare)}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onContinue(selected)}
+              className="flex-shrink-0 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:brightness-110 active:scale-[0.98]"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,14 @@ import { auth } from '@/lib/firebase';
 import { AuthContext, type AuthUser } from '@/lib/authContext';
 
 function toAuthUser(u: User | null): AuthUser | null {
-  return u ? { uid: u.uid, email: u.email, displayName: u.displayName } : null;
+  return u
+    ? {
+        uid: u.uid,
+        email: u.email,
+        displayName: u.displayName,
+        createdAt: u.metadata.creationTime ?? null,
+      }
+    : null;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

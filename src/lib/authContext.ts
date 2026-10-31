@@ -4,6 +4,7 @@ export type AuthUser = {
   uid: string;
   email: string | null;
   displayName: string | null;
+  createdAt: string | null;
 };
 
 export type AuthState = {

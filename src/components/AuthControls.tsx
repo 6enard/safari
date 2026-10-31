@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { signOut } from 'firebase/auth';
-import { ChevronDown, LogIn, LogOut } from 'lucide-react';
+import { ChevronDown, LogIn, LogOut, UserCircle } from 'lucide-react';
 import { AuthDialog } from '@/components/AuthDialog';
 import { useAuth } from '@/lib/authContext';
 import { auth } from '@/lib/firebase';
 
-export function AuthControls() {
+type Props = {
+  onOpenProfile: () => void;
+};
+
+export function AuthControls({ onOpenProfile }: Props) {
   const { user, loading } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -76,8 +80,18 @@ export function AuthControls() {
           </div>
           <button
             type="button"
+            onClick={() => {
+              setMenuOpen(false);
+              onOpenProfile();
+            }}
+            className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-brand-50 hover:text-brand-700"
+          >
+            <UserCircle className="h-4 w-4" /> My profile
+          </button>
+          <button
+            type="button"
             onClick={handleSignOut}
-            className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+            className="flex w-full items-center gap-2 border-t border-slate-100 px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
           >
             <LogOut className="h-4 w-4" /> Sign out
           </button>

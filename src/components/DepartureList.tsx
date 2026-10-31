@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Bus, Clock, Loader as Loader2, Wifi, Snowflake, Zap, Coffee, Calendar, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, ArrowDown, Bus, Clock, Loader as Loader2, Wifi, Snowflake, Zap, Coffee, Calendar, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { db, type Route, type Departure } from '@/lib/db';
 import { formatTime } from '@/lib/format';
 
@@ -30,6 +30,7 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [loadingDates, setLoadingDates] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const [departures, setDepartures] = useState<Departure[]>([]);
   const [loadingDepartures, setLoadingDepartures] = useState(false);
@@ -74,6 +75,21 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
       active = false;
     };
   }, [route.id, selectedDate]);
+
+  useEffect(() => {
+    if (selectedDate && !loadingDepartures) {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [selectedDate, loadingDepartures]);
+
+  function selectDate(iso: string) {
+    setLoadingDepartures(true);
+    setSelectedDate(iso);
+  }
+
+  function scrollToResults() {
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   const availableSet = useMemo(() => new Set(availableDates), [availableDates]);
 
@@ -178,7 +194,7 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
                   <button
                     key={idx}
                     disabled={disabled}
-                    onClick={() => setSelectedDate(iso)}
+                    onClick={() => selectDate(iso)}
                     className={[
                       'relative aspect-square rounded-xl text-sm font-semibold transition-all duration-200',
                       isSelected
@@ -200,6 +216,36 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
               })}
             </div>
 
+            <div
+              className={[
+                'mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm transition-colors',
+                selectedDate
+                  ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-100'
+                  : 'bg-amber-50 text-amber-800 ring-1 ring-amber-200',
+              ].join(' ')}
+            >
+              {selectedDate && !loadingDepartures ? (
+                <>
+                  <span className="font-medium">
+                    {departures.length} {departures.length === 1 ? 'matatu runs' : 'matatus run'} on this date
+                  </span>
+                  {departures.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={scrollToResults}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-brand-700 shadow-sm ring-1 ring-brand-200 transition-all hover:bg-brand-600 hover:text-white"
+                    >
+                      See matatus <ArrowDown className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </>
+              ) : selectedDate ? (
+                <span className="font-medium">Loading matatus for this date...</span>
+              ) : (
+                <span className="font-medium">Next: tap a highlighted date to see the matatus running that day.</span>
+              )}
+            </div>
+
             <div className="mt-5 flex items-center justify-center gap-5 text-xs text-slate-500">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-3 w-3 rounded-md bg-gradient-to-br from-brand-500 to-teal-600" /> Selected
@@ -217,7 +263,7 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
 
       {/* Departure cards */}
       {selectedDate && (
-        <div className="mt-8 animate-fade-in">
+        <div ref={resultsRef} className="mt-8 scroll-mt-24 animate-fade-in">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
             Available matatus · {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-KE', { weekday: 'long', day: 'numeric', month: 'long' })}
           </h3>

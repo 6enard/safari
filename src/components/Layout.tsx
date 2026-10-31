@@ -1,7 +1,7 @@
 import { Bus } from 'lucide-react';
 import { AuthControls } from '@/components/AuthControls';
 
-export function Header() {
+export function Header({ onOpenProfile }: { onOpenProfile: () => void }) {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl transition-shadow">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
@@ -26,7 +26,7 @@ export function Header() {
               My bookings
             </a>
           </nav>
-          <AuthControls />
+          <AuthControls onOpenProfile={onOpenProfile} />
         </div>
       </div>
     </header>

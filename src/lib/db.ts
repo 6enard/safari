@@ -24,6 +24,7 @@ export type Departure = {
 
 export type Booking = {
   id: string;
+  user_id: string;
   departure_id: string;
   seat_number: number;
   passenger_name: string;
@@ -31,6 +32,14 @@ export type Booking = {
   payment_method: string;
   payment_ref: string;
   status: string;
+  created_at: string;
+};
+
+export type BookingGroup = {
+  payment_ref: string;
+  bookings: Booking[];
+  departure: Departure;
+  route: Route;
   created_at: string;
 };
 
@@ -209,6 +218,7 @@ export const db = {
   },
 
   async createBookings(input: {
+    user_id: string;
     departure_id: string;
     seat_numbers: number[];
     passenger_name: string;
@@ -238,6 +248,7 @@ export const db = {
         ids.push(id);
         data.bookings.push({
           id,
+          user_id: input.user_id,
           departure_id: input.departure_id,
           seat_number: seat,
           passenger_name: input.passenger_name,
@@ -253,6 +264,33 @@ export const db = {
       throw { code: '23505', message: 'Seat already booked' };
     }
     return { ids };
+  },
+
+  async listBookingsForUser(userId: string): Promise<BookingGroup[]> {
+    await ensureSeeded();
+    return read((d) => {
+      const byRef = new Map<string, Booking[]>();
+      for (const b of d.bookings) {
+        if (b.user_id !== userId) continue;
+        const list = byRef.get(b.payment_ref) ?? [];
+        list.push(b);
+        byRef.set(b.payment_ref, list);
+      }
+      const groups: BookingGroup[] = [];
+      for (const [payment_ref, group] of byRef) {
+        const bookings = [...group].sort((a, b) => a.seat_number - b.seat_number);
+        const departure = d.departures.find((dep) => dep.id === bookings[0].departure_id);
+        if (!departure) continue;
+        const route = d.routes.find((r) => r.id === departure.route_id);
+        if (!route) continue;
+        groups.push({ payment_ref, bookings, departure, route, created_at: bookings[0].created_at });
+      }
+      return groups.sort((a, b) =>
+        `${a.departure.departure_date}T${a.departure.departure_time}`.localeCompare(
+          `${b.departure.departure_date}T${b.departure.departure_time}`,
+        ),
+      );
+    });
   },
 
   async getBookingsByRef(paymentRef: string): Promise<{ bookings: Booking[]; departure: Departure; route: Route } | null> {

@@ -33,12 +33,13 @@ export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
 
   async function handlePay(e: React.FormEvent) {
     e.preventDefault();
-    if (!valid) return;
+    if (!valid || !user) return;
     setProcessing(true);
     setError(null);
     const paymentRef = genPaymentRef();
     try {
       const { ids } = await db.createBookings({
+        user_id: user.uid,
         departure_id: departure.id,
         seat_numbers: seats,
         passenger_name: name.trim(),

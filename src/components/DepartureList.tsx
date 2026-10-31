@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowDown, Bus, Clock, Loader as Loader2, Wifi, Snowflake, Zap, Coffee, Calendar, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { db, type Route, type Departure } from '@/lib/db';
-import { formatTime } from '@/lib/format';
+import { formatTime, toISO } from '@/lib/format';
 
 type Props = {
   route: Route;
@@ -18,13 +18,6 @@ const amenityIcon: Record<string, typeof Wifi> = {
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-function toISO(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
 
 export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
   const [availableDates, setAvailableDates] = useState<string[]>([]);

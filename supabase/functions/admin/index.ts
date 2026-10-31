@@ -58,8 +58,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const auth = await verifyAdmin(req);
-    if (!auth.ok) return jsonResponse({ error: auth.error }, auth.status);
+    const authResult = await verifyAdmin(req);
+    if (!authResult.ok) return jsonResponse({ error: authResult.error }, authResult.status);
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { action, table, id, row } = await req.json();
@@ -130,3 +130,4 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: message }, 500);
   }
 });
+

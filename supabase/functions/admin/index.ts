@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === 'cancelBooking') {
-      const { bookingId } = await req.json();
+      const bookingId = body.bookingId;
       if (typeof bookingId !== 'string') return jsonResponse({ error: 'Missing booking id.' }, 400);
       const { error } = await supabase
         .from('bookings')

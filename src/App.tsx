@@ -20,9 +20,16 @@ type View = 'booking' | 'profile' | 'bookings' | 'admin';
 
 const STEP_INDEX: Record<Step, number> = { routes: 0, departures: 1, seats: 2, payment: 3, receipt: 4 };
 
+const VALID_VIEWS: View[] = ['booking', 'profile', 'bookings', 'admin'];
+
+function viewFromHash(): View {
+  const raw = window.location.hash.replace(/^#\/?/, '');
+  return VALID_VIEWS.includes(raw as View) ? (raw as View) : 'booking';
+}
+
 function App() {
   const { user, loading: authLoading } = useAuth();
-  const [view, setView] = useState<View>('booking');
+  const [view, setView] = useState<View>(() => viewFromHash());
   const [step, setStep] = useState<Step>('routes');
   const [route, setRoute] = useState<Route | null>(null);
   const [departure, setDeparture] = useState<Departure | null>(null);
@@ -32,6 +39,32 @@ function App() {
 
   const isSignedIn = Boolean(user);
   const canUseAdmin = Boolean(user && isAdminEmail(user.email) && user.emailVerified);
+
+  // Keep the URL hash in sync with the current view.
+  function changeView(next: View) {
+    setView(next);
+    if (next === 'booking') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else {
+      window.history.replaceState(null, '', `#/${next}`);
+    }
+  }
+
+  // If the user hits the back/forward button, follow the hash.
+  useEffect(() => {
+    function onHashChange() {
+      setView(viewFromHash());
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  // If the saved view is unavailable for this user, fall back to booking.
+  useEffect(() => {
+    if (view !== 'booking' && (!user || (view === 'admin' && !canUseAdmin))) {
+      changeView('booking');
+    }
+  }, [view, user, canUseAdmin]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -49,9 +82,9 @@ function App() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 gradient-mesh">
       <Header
-        onOpenProfile={() => setView('profile')}
-        onOpenBookings={() => setView('bookings')}
-        onOpenAdmin={() => setView('admin')}
+        onOpenProfile={() => changeView('profile')}
+        onOpenBookings={() => changeView('bookings')}
+        onOpenAdmin={() => changeView('admin')}
       />
       <main className="flex-1">
         {authLoading && (
@@ -60,9 +93,9 @@ function App() {
           </div>
         )}
         {!authLoading && !user && <SignInGate />}
-        {!authLoading && user && view === 'profile' && <Profile onBack={() => setView('booking')} />}
-        {!authLoading && user && view === 'bookings' && <MyBookings onBack={() => setView('booking')} />}
-        {!authLoading && canUseAdmin && view === 'admin' && <Admin onBack={() => setView('booking')} />}
+        {!authLoading && user && view === 'profile' && <Profile onBack={() => changeView('booking')} />}
+        {!authLoading && user && view === 'bookings' && <MyBookings onBack={() => changeView('booking')} />}
+        {!authLoading && canUseAdmin && view === 'admin' && <Admin onBack={() => changeView('booking')} />}
         {!authLoading && user && view === 'booking' && (
           <>
             {step !== 'receipt' && <BookingSteps current={STEP_INDEX[step]} />}

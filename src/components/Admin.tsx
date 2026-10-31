@@ -13,6 +13,19 @@ type Props = {
 
 type Tab = 'routes' | 'schedules' | 'vehicles' | 'drivers' | 'bookings';
 
+const VALID_TABS: Tab[] = ['routes', 'schedules', 'vehicles', 'drivers', 'bookings'];
+
+function tabFromHash(): Tab {
+  const hash = window.location.hash;
+  const match = hash.match(/admin[?&]tab=([^&]+)/);
+  const raw = match ? decodeURIComponent(match[1]) : '';
+  return VALID_TABS.includes(raw as Tab) ? (raw as Tab) : 'routes';
+}
+
+function adminHashWithTab(tab: Tab): string {
+  return `#/admin?tab=${tab}`;
+}
+
 const TABS: { id: Tab; label: string; icon: typeof RouteIcon }[] = [
   { id: 'routes', label: 'Routes', icon: RouteIcon },
   { id: 'schedules', label: 'Schedules & prices', icon: Calendar },
@@ -25,7 +38,21 @@ export function Admin({ onBack }: Props) {
   const [data, setData] = useState<AdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>('routes');
+  const [tab, setTab] = useState<Tab>(() => tabFromHash());
+
+  function changeTab(next: Tab) {
+    setTab(next);
+    window.history.replaceState(null, '', adminHashWithTab(next));
+  }
+
+  // If the user hits back/forward while on admin, follow the hash.
+  useEffect(() => {
+    function onHashChange() {
+      setTab(tabFromHash());
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   const load = useCallback(async () => {
     setError(null);
@@ -96,7 +123,7 @@ export function Admin({ onBack }: Props) {
                   type="button"
                   role="tab"
                   aria-selected={active}
-                  onClick={() => setTab(t.id)}
+                  onClick={() => changeTab(t.id)}
                   className={[
                     'inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                     active ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700',

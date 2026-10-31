@@ -1,4 +1,4 @@
-import { Bus, ShieldCheck } from 'lucide-react';
+import { Bus, ShieldCheck, Ticket } from 'lucide-react';
 import { AuthControls } from '@/components/AuthControls';
 import { useAuth } from '@/lib/authContext';
 import { isAdminEmail } from '@/lib/adminApi';
@@ -25,7 +25,7 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
             <p className="text-[11px] text-slate-500">Matatu booking · Kenya</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {canUseAdmin && (
             <button
               type="button"
@@ -40,14 +40,17 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
           <nav className="hidden items-center gap-1 text-sm font-medium text-slate-600 sm:flex">
             <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Routes</a>
             <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Help</a>
-            <button
-              type="button"
-              onClick={onOpenBookings}
-              className="rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-2 text-white shadow-md shadow-brand-500/25 transition-all hover:shadow-lg hover:shadow-brand-500/40 hover:brightness-110"
-            >
-              My bookings
-            </button>
           </nav>
+          <button
+            type="button"
+            onClick={onOpenBookings}
+            aria-label="My bookings"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/25 transition-all hover:shadow-lg hover:shadow-brand-500/40 hover:brightness-110 sm:px-4"
+          >
+            <Ticket className="h-4 w-4 sm:hidden" />
+            <span className="hidden sm:inline">My bookings</span>
+            <span className="sm:hidden">Bookings</span>
+          </button>
           <AuthControls onOpenProfile={onOpenProfile} onOpenBookings={onOpenBookings} />
         </div>
       </div>

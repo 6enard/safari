@@ -25,7 +25,7 @@ export function FormModal({ title, onClose, children }: { title: string; onClose
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl animate-slide-up"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button
             type="button"

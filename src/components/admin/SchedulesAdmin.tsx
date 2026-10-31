@@ -142,7 +142,7 @@ export function SchedulesAdmin({ data, onChanged }: Props) {
               const vehicle = vehicleById.get(d.vehicle_id ?? '');
               const route = routeById.get(d.route_id);
               return (
-                <li key={d.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <li key={d.id} className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-slate-900">
                       {formatDate(d.departure_date)} · {formatTime(d.departure_time)}
@@ -174,7 +174,7 @@ export function SchedulesAdmin({ data, onChanged }: Props) {
 
       {editing && (
         <FormModal title={editing === 'new' ? 'Add a trip' : 'Edit trip'} onClose={() => setEditing(null)}>
-          <form onSubmit={handleSave} className="space-y-4 p-6">
+          <form onSubmit={handleSave} className="space-y-4 p-5 sm:p-6">
             <Field label="Route">
               <select
                 className={inputClass}

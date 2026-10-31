@@ -65,7 +65,7 @@ export function VehiclesAdmin({ data, onChanged }: Props) {
 
   return (
     <section>
-      <div className="mb-5 flex items-center justify-between gap-3">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-600">{data.vehicles.length} matatus in the fleet.</p>
         <button
           type="button"
@@ -78,11 +78,11 @@ export function VehiclesAdmin({ data, onChanged }: Props) {
 
       {pageError && <div className="mb-4"><FormError message={pageError} /></div>}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
         {data.vehicles.map((v) => {
           const driver = driverById.get(v.driver_id ?? '');
           return (
-            <article key={v.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <article key={v.id} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
               <div className="flex items-center gap-3">
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
                   <Bus className="h-5 w-5" />
@@ -121,7 +121,7 @@ export function VehiclesAdmin({ data, onChanged }: Props) {
 
       {editing && (
         <FormModal title={editing === 'new' ? 'Add a matatu' : 'Edit matatu'} onClose={() => setEditing(null)}>
-          <form onSubmit={handleSave} className="space-y-4 p-6">
+          <form onSubmit={handleSave} className="space-y-4 p-5 sm:p-6">
             <Field label="Matatu name">
               <input
                 className={inputClass}

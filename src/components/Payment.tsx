@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, CreditCard, Smartphone, Banknote, Loader as Loader2, ShieldCheck, Armchair } from 'lucide-react';
 import { db, type Departure, type Route } from '@/lib/db';
+import { useAuth } from '@/lib/authContext';
 import { formatKes, formatDate, formatTime, genPaymentRef } from '@/lib/format';
 
 type Props = {
@@ -20,7 +21,8 @@ const methods: { id: Method; icon: typeof Smartphone; desc: string }[] = [
 ];
 
 export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
-  const [name, setName] = useState('');
+  const { user } = useAuth();
+  const [name, setName] = useState(user?.displayName ?? '');
   const [phone, setPhone] = useState('');
   const [method, setMethod] = useState<Method>('M-Pesa');
   const [processing, setProcessing] = useState(false);

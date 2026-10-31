@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader as Loader2 } from 'lucide-react';
 import { Header, Footer } from '@/components/Layout';
 import { BookingSteps } from '@/components/BookingSteps';
@@ -26,6 +26,12 @@ function App() {
   const [seats, setSeats] = useState<number[]>([]);
   const [bookingIds, setBookingIds] = useState<string[]>([]);
   const [paymentRef, setPaymentRef] = useState<string>('');
+
+  const isSignedIn = Boolean(user);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [step, view, isSignedIn]);
 
   function startOver() {
     setStep('routes');

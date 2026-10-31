@@ -65,19 +65,24 @@ Deno.serve(async (req: Request) => {
     const { action, table, id, row } = await req.json();
 
     if (action === 'load') {
-      const [routes, departures, vehicles, drivers] = await Promise.all([
+      const [routes, departures, vehicles, drivers, bookings] = await Promise.all([
         supabase.from('routes').select('*').order('origin'),
         supabase.from('departures').select('*').order('departure_date').order('departure_time'),
         supabase.from('vehicles').select('*').order('plate_number'),
         supabase.from('drivers').select('*').order('full_name'),
+        supabase
+          .from('bookings')
+          .select('*, departures(*, routes(*), vehicles(plate_number, vehicle_name))')
+          .order('created_at', { ascending: false }),
       ]);
-      const failed = [routes, departures, vehicles, drivers].find((r) => r.error);
+      const failed = [routes, departures, vehicles, drivers, bookings].find((r) => r.error);
       if (failed?.error) return jsonResponse({ error: failed.error.message }, 500);
       return jsonResponse({
         routes: routes.data,
         departures: departures.data,
         vehicles: vehicles.data,
         drivers: drivers.data,
+        bookings: bookings.data,
       });
     }
 

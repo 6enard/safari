@@ -1,5 +1,5 @@
 import { callFunction } from '@/lib/functionsClient';
-import type { Route } from '@/lib/db';
+import type { Route, Departure } from '@/lib/db';
 
 export const ADMIN_EMAIL = '6enard@gmail.com';
 
@@ -32,11 +32,29 @@ export type AdminDriver = {
   license_number: string;
 };
 
+export type AdminBooking = {
+  id: string;
+  user_id: string;
+  departure_id: string;
+  seat_number: number;
+  passenger_name: string;
+  passenger_phone: string;
+  payment_method: string;
+  payment_ref: string;
+  status: string;
+  created_at: string;
+  departures: AdminDeparture & {
+    routes: Route;
+    vehicles: { plate_number: string; vehicle_name: string } | null;
+  };
+};
+
 export type AdminData = {
   routes: Route[];
   departures: AdminDeparture[];
   vehicles: AdminVehicle[];
   drivers: AdminDriver[];
+  bookings: AdminBooking[];
 };
 
 export type AdminTable = 'routes' | 'departures' | 'vehicles' | 'drivers';

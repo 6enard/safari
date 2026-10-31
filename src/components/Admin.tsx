@@ -1,22 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Bus, Calendar, Loader as Loader2, Route as RouteIcon, ShieldCheck, Users } from 'lucide-react';
+import { ArrowLeft, Bus, Calendar, Loader as Loader2, Route as RouteIcon, ShieldCheck, Ticket, Users } from 'lucide-react';
 import { adminApi, type AdminData } from '@/lib/adminApi';
 import { RoutesAdmin } from '@/components/admin/RoutesAdmin';
 import { SchedulesAdmin } from '@/components/admin/SchedulesAdmin';
 import { VehiclesAdmin } from '@/components/admin/VehiclesAdmin';
 import { DriversAdmin } from '@/components/admin/DriversAdmin';
+import { BookingsAdmin } from '@/components/admin/BookingsAdmin';
 
 type Props = {
   onBack: () => void;
 };
 
-type Tab = 'routes' | 'schedules' | 'vehicles' | 'drivers';
+type Tab = 'routes' | 'schedules' | 'vehicles' | 'drivers' | 'bookings';
 
 const TABS: { id: Tab; label: string; icon: typeof RouteIcon }[] = [
   { id: 'routes', label: 'Routes', icon: RouteIcon },
   { id: 'schedules', label: 'Schedules & prices', icon: Calendar },
   { id: 'vehicles', label: 'Matatus', icon: Bus },
   { id: 'drivers', label: 'Drivers', icon: Users },
+  { id: 'bookings', label: 'Bookings', icon: Ticket },
 ];
 
 export function Admin({ onBack }: Props) {
@@ -110,6 +112,7 @@ export function Admin({ onBack }: Props) {
           {tab === 'schedules' && <SchedulesAdmin data={data} onChanged={load} />}
           {tab === 'vehicles' && <VehiclesAdmin data={data} onChanged={load} />}
           {tab === 'drivers' && <DriversAdmin data={data} onChanged={load} />}
+          {tab === 'bookings' && <BookingsAdmin data={data} />}
         </>
       )}
     </div>

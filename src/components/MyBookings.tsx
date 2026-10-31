@@ -57,6 +57,19 @@ export function MyBookings({ onBack }: Props) {
     }
   }
 
+  async function handleDeleteBooking(paymentRef: string) {
+    setRemovingRef(paymentRef);
+    setRemoveError(null);
+    try {
+      await db.deleteBookings(paymentRef);
+      setGroups((prev) => prev.filter((g) => g.payment_ref !== paymentRef));
+    } catch (err) {
+      setRemoveError(err instanceof Error ? err.message : 'Could not delete this booking. Please try again.');
+    } finally {
+      setRemovingRef(null);
+    }
+  }
+
   const now = Date.now();
   const upcoming = useMemo(
     () => groups.filter((g) => departureTimestamp(g) >= now).sort((a, b) => departureTimestamp(a) - departureTimestamp(b)),
@@ -229,6 +242,17 @@ export function MyBookings({ onBack }: Props) {
                       >
                         {removingRef === group.payment_ref ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                         {removingRef === group.payment_ref ? 'Removing...' : 'Remove cancelled seats'}
+                      </button>
+                    )}
+                    {(fullyCancelled || filter === 'past') && (
+                      <button
+                        type="button"
+                        disabled={removingRef === group.payment_ref}
+                        onClick={() => handleDeleteBooking(group.payment_ref)}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 ring-1 ring-red-200 transition-colors hover:bg-red-50 disabled:opacity-50"
+                      >
+                        {removingRef === group.payment_ref ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        {removingRef === group.payment_ref ? 'Deleting...' : fullyCancelled ? 'Delete booking' : 'Delete past trip'}
                       </button>
                     )}
                     <p className="text-xs text-slate-500">

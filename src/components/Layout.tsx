@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bus, Menu, ShieldCheck, Ticket, X } from 'lucide-react';
+import { Bus, Menu, Package, ShieldCheck, Ticket, X } from 'lucide-react';
 import { AuthControls } from '@/components/AuthControls';
 import { useAuth } from '@/lib/authContext';
 import { isAdminEmail } from '@/lib/adminApi';
@@ -8,11 +8,12 @@ type HeaderProps = {
   onOpenProfile: () => void;
   onOpenBookings: () => void;
   onOpenAdmin: () => void;
+  onOpenParcels: () => void;
 };
 
 const navLinkClass = 'rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700';
 
-export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderProps) {
+export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParcels }: HeaderProps) {
   const { user } = useAuth();
   const canUseAdmin = Boolean(user && isAdminEmail(user.email) && user.emailVerified);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,8 +31,8 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
             <Bus className="h-5 w-5" />
           </span>
           <div className="leading-tight">
-            <p className="text-base font-bold tracking-tight text-slate-900">Tiketi</p>
-            <p className="hidden text-[11px] text-slate-500 sm:block">Matatu booking · Kenya</p>
+            <p className="text-base font-bold tracking-tight text-slate-900">South Rift Luxury Shuttle</p>
+            <p className="hidden text-[11px] text-slate-500 sm:block">Luxury matatu booking · Kenya</p>
           </div>
         </div>
 
@@ -47,6 +48,15 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
               Admin
             </button>
           )}
+          <button
+            type="button"
+            onClick={onOpenParcels}
+            aria-label="Send a parcel"
+            className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-brand-300 hover:text-brand-700 hover:shadow-md sm:inline-flex"
+          >
+            <Package className="h-4 w-4" />
+            Parcels
+          </button>
           <nav className="hidden items-center gap-1 text-sm font-medium text-slate-600 sm:flex">
             <a href="#" className={navLinkClass}>Routes</a>
             <a href="#" className={navLinkClass}>Help</a>
@@ -60,7 +70,7 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
             <Ticket className="h-4 w-4" />
             My bookings
           </button>
-          <AuthControls onOpenProfile={onOpenProfile} onOpenBookings={onOpenBookings} />
+          <AuthControls onOpenProfile={onOpenProfile} onOpenBookings={onOpenBookings} onOpenParcels={onOpenParcels} />
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
@@ -85,6 +95,9 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
                 <ShieldCheck className="h-4 w-4 text-brand-600" /> Admin console
               </button>
             )}
+            <button type="button" onClick={() => go(onOpenParcels)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-brand-50 hover:text-brand-700">
+              <Package className="h-4 w-4 text-brand-600" /> Send a parcel
+            </button>
             <a href="#" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 transition-colors hover:bg-brand-50 hover:text-brand-700">Routes</a>
             <a href="#" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 transition-colors hover:bg-brand-50 hover:text-brand-700">Help</a>
           </nav>
@@ -102,7 +115,7 @@ export function Footer() {
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-teal-600 text-white">
             <Bus className="h-4 w-4" />
           </span>
-          <span className="font-bold text-slate-700">Tiketi</span>
+          <span className="font-bold text-slate-700">South Rift Luxury Shuttle</span>
         </div>
         <p>Book matatu seats across Kenya · Demo project</p>
       </div>

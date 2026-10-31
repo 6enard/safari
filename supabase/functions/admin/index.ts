@@ -11,6 +11,7 @@ const ADMIN_EMAIL = '6enard@gmail.com';
 const REFUND_STATUSES = ['pending', 'refunded', 'not_refunded'];
 const PHOTO_TYPES = new Map([['image/jpeg', 'jpg'], ['image/png', 'png'], ['image/webp', 'webp']]);
 const MAX_PHOTO_BASE64 = 2_800_000;
+const PARCEL_STATUSES = ['pending', 'in_transit', 'delivered', 'cancelled'];
 
 const TABLE_FIELDS: Record<string, string[]> = {
   routes: ['origin', 'destination', 'distance_km', 'duration_hours', 'base_fare', 'popular'],
@@ -69,7 +70,7 @@ Deno.serve(async (req: Request) => {
     const { action, table, id, row } = body;
 
     if (action === 'load') {
-      const [routes, departures, vehicles, drivers, bookings] = await Promise.all([
+      const [routes, departures, vehicles, drivers, bookings, parcels] = await Promise.all([
         supabase.from('routes').select('*').order('origin'),
         supabase.from('departures').select('*').order('departure_date').order('departure_time'),
         supabase.from('vehicles').select('*').order('plate_number'),
@@ -78,8 +79,12 @@ Deno.serve(async (req: Request) => {
           .from('bookings')
           .select('*, departures(*, routes(*), vehicles(plate_number, vehicle_name))')
           .order('created_at', { ascending: false }),
+        supabase
+          .from('parcels')
+          .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time, vehicles(plate_number, vehicle_name))')
+          .order('created_at', { ascending: false }),
       ]);
-      const failed = [routes, departures, vehicles, drivers, bookings].find((r) => r.error);
+      const failed = [routes, departures, vehicles, drivers, bookings, parcels].find((r) => r.error);
       if (failed?.error) return jsonResponse({ error: failed.error.message }, 500);
       return jsonResponse({
         routes: routes.data,
@@ -87,6 +92,7 @@ Deno.serve(async (req: Request) => {
         vehicles: vehicles.data,
         drivers: drivers.data,
         bookings: bookings.data,
+        parcels: parcels.data,
       });
     }
 
@@ -110,6 +116,37 @@ Deno.serve(async (req: Request) => {
         })
         .eq('id', bookingId)
         .eq('status', 'confirmed');
+      if (error) return jsonResponse({ error: error.message }, 400);
+      return jsonResponse({ ok: true });
+    }
+
+    if (action === 'updateParcel') {
+      const { parcelId, status: pStatus, adminNotes, fee } = body;
+      if (typeof parcelId !== 'string') return jsonResponse({ error: 'Missing parcel.' }, 400);
+      const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (pStatus !== undefined) {
+        if (!PARCEL_STATUSES.includes(pStatus)) return jsonResponse({ error: 'Choose a valid parcel status.' }, 400);
+        update.status = pStatus;
+      }
+      if (adminNotes !== undefined) {
+        const notes = typeof adminNotes === 'string' ? adminNotes.trim() : '';
+        if (notes.length > 1000) return jsonResponse({ error: 'Notes must be 1000 characters or fewer.' }, 400);
+        update.admin_notes = notes || null;
+      }
+      if (fee !== undefined) {
+        const feeNum = Number(fee);
+        if (!Number.isFinite(feeNum) || feeNum < 0) return jsonResponse({ error: 'Enter a valid fee.' }, 400);
+        update.fee = Math.round(feeNum);
+      }
+      const { error } = await supabase.from('parcels').update(update).eq('id', parcelId);
+      if (error) return jsonResponse({ error: error.message }, 400);
+      return jsonResponse({ ok: true });
+    }
+
+    if (action === 'deleteParcel') {
+      const { parcelId } = body;
+      if (typeof parcelId !== 'string') return jsonResponse({ error: 'Missing parcel.' }, 400);
+      const { error } = await supabase.from('parcels').delete().eq('id', parcelId);
       if (error) return jsonResponse({ error: error.message }, 400);
       return jsonResponse({ ok: true });
     }
@@ -183,4 +220,3 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: message }, 500);
   }
 });
-

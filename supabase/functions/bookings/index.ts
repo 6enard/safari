@@ -9,6 +9,14 @@ const corsHeaders = {
 const FIREBASE_API_KEY = 'AIzaSyB1QbZLaB7WbYlFwYaaA9Q7sbwisbuCBhA';
 const PAYMENT_METHODS = ['M-Pesa', 'Card', 'Cash'] as const;
 const SEAT_COUNT = 10;
+const PARCEL_TYPES = ['document', 'electronics', 'clothing', 'food', 'other'] as const;
+const PARCEL_TYPE_BASE_FEE: Record<string, number> = {
+  document: 300,
+  electronics: 800,
+  clothing: 500,
+  food: 400,
+  other: 600,
+};
 
 const jsonResponse = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -43,6 +51,15 @@ function validSeats(seats: unknown): seats is number[] {
     new Set(seats).size === seats.length &&
     seats.every((s) => Number.isInteger(s) && s >= 1 && s <= SEAT_COUNT)
   );
+}
+
+function genTrackingNumber(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+  let ref = '';
+  for (let i = 0; i < 8; i++) {
+    ref += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return `SRP-${ref}`;
 }
 
 Deno.serve(async (req: Request) => {
@@ -122,6 +139,47 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ ok: true });
     }
 
+    if (action === 'deleteBookings') {
+      const { paymentRef } = body;
+      if (!isNonEmptyString(paymentRef, 4, 40)) return jsonResponse({ error: 'Missing receipt number.' }, 400);
+      const { data: rows, error: findError } = await supabase
+        .from('bookings')
+        .select('id, status, departure_id')
+        .eq('user_id', userId)
+        .eq('payment_ref', paymentRef);
+      if (findError) return jsonResponse({ error: findError.message }, 500);
+      if (!rows || rows.length === 0) return jsonResponse({ error: 'Booking not found.' }, 404);
+
+      const now = new Date();
+      const cancellable = rows.filter((r) => r.status === 'cancelled');
+
+      if (cancellable.length > 0 && cancellable.length === rows.length) {
+        const ids = cancellable.map((r) => r.id);
+        const { error } = await supabase.from('bookings').delete().in('id', ids);
+        if (error) return jsonResponse({ error: error.message }, 500);
+        return jsonResponse({ ok: true });
+      }
+
+      const { data: deps } = await supabase
+        .from('departures')
+        .select('departure_date, departure_time')
+        .in('id', [...new Set(rows.map((r) => r.departure_id))]);
+      const isPast = (deps ?? []).every((d) => {
+        const time = d.departure_time.length === 5 ? `${d.departure_time}:00` : d.departure_time;
+        return new Date(`${d.departure_date}T${time}`).getTime() < now.getTime();
+      });
+
+      if (!isPast) return jsonResponse({ error: 'You can only delete cancelled or completed trips.' }, 400);
+
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('user_id', userId)
+        .eq('payment_ref', paymentRef);
+      if (error) return jsonResponse({ error: error.message }, 500);
+      return jsonResponse({ ok: true });
+    }
+
     if (action === 'mine' || action === 'receipt') {
       let query = supabase
         .from('bookings')
@@ -139,10 +197,91 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ bookings: data ?? [] });
     }
 
+    // ---- Parcels (user side) ----
+
+    if (action === 'createParcel') {
+      const {
+        routeId, departureId, senderName, senderPhone,
+        recipientName, recipientPhone, pickupLocation, dropoffLocation,
+        description, weightKg, parcelType,
+      } = body;
+
+      if (!isNonEmptyString(senderName, 2, 100)) return jsonResponse({ error: 'Enter the sender name.' }, 400);
+      if (!isNonEmptyString(senderPhone, 10, 20)) return jsonResponse({ error: 'Enter a valid sender phone.' }, 400);
+      if (!isNonEmptyString(recipientName, 2, 100)) return jsonResponse({ error: 'Enter the recipient name.' }, 400);
+      if (!isNonEmptyString(recipientPhone, 10, 20)) return jsonResponse({ error: 'Enter a valid recipient phone.' }, 400);
+      if (!isNonEmptyString(pickupLocation, 2, 200)) return jsonResponse({ error: 'Enter a pickup location.' }, 400);
+      if (!isNonEmptyString(dropoffLocation, 2, 200)) return jsonResponse({ error: 'Enter a drop-off location.' }, 400);
+      if (!isNonEmptyString(description, 3, 500)) return jsonResponse({ error: 'Describe the parcel.' }, 400);
+      if (!PARCEL_TYPES.includes(parcelType)) return jsonResponse({ error: 'Choose a valid parcel type.' }, 400);
+
+      const weight = Number(weightKg);
+      if (!Number.isFinite(weight) || weight <= 0 || weight > 1000) {
+        return jsonResponse({ error: 'Enter a valid weight.' }, 400);
+      }
+
+      const baseFee = PARCEL_TYPE_BASE_FEE[parcelType as string] ?? 600;
+      const fee = Math.round(baseFee + Math.ceil(weight) * 50);
+      const trackingNumber = genTrackingNumber();
+
+      const { data, error } = await supabase
+        .from('parcels')
+        .insert({
+          user_id: userId,
+          route_id: typeof routeId === 'string' && routeId ? routeId : null,
+          departure_id: typeof departureId === 'string' && departureId ? departureId : null,
+          sender_name: senderName.trim(),
+          sender_phone: senderPhone.trim(),
+          recipient_name: recipientName.trim(),
+          recipient_phone: recipientPhone.trim(),
+          pickup_location: pickupLocation.trim(),
+          dropoff_location: dropoffLocation.trim(),
+          description: description.trim(),
+          weight_kg: weight,
+          parcel_type: parcelType,
+          fee,
+          tracking_number: trackingNumber,
+          status: 'pending',
+        })
+        .select('id, tracking_number, fee')
+        .single();
+
+      if (error) return jsonResponse({ error: error.message }, 500);
+      return jsonResponse({ parcel: data });
+    }
+
+    if (action === 'myParcels') {
+      const { data, error } = await supabase
+        .from('parcels')
+        .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) return jsonResponse({ error: error.message }, 500);
+      return jsonResponse({ parcels: data ?? [] });
+    }
+
+    if (action === 'deleteParcel') {
+      const { parcelId } = body;
+      if (typeof parcelId !== 'string') return jsonResponse({ error: 'Missing parcel.' }, 400);
+      const { data: existing, error: findError } = await supabase
+        .from('parcels')
+        .select('id, status, user_id')
+        .eq('id', parcelId)
+        .maybeSingle();
+      if (findError) return jsonResponse({ error: findError.message }, 500);
+      if (!existing) return jsonResponse({ error: 'Parcel not found.' }, 404);
+      if (existing.user_id !== userId) return jsonResponse({ error: 'Not allowed.' }, 403);
+      if (existing.status === 'in_transit' || existing.status === 'delivered') {
+        return jsonResponse({ error: 'You can only delete parcels that are pending or cancelled.' }, 400);
+      }
+      const { error } = await supabase.from('parcels').delete().eq('id', parcelId);
+      if (error) return jsonResponse({ error: error.message }, 500);
+      return jsonResponse({ ok: true });
+    }
+
     return jsonResponse({ error: 'Unknown action.' }, 400);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Something went wrong.';
     return jsonResponse({ error: message }, 500);
   }
 });
-

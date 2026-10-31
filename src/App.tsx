@@ -11,16 +11,17 @@ import { DepartureList } from '@/components/DepartureList';
 import { SeatSelection } from '@/components/SeatSelection';
 import { Payment } from '@/components/Payment';
 import { Receipt } from '@/components/Receipt';
+import { Parcels } from '@/components/Parcels';
 import { useAuth } from '@/lib/authContext';
 import { isAdminEmail } from '@/lib/adminApi';
 import type { Route, Departure } from '@/lib/db';
 
 type Step = 'routes' | 'departures' | 'seats' | 'payment' | 'receipt';
-type View = 'booking' | 'profile' | 'bookings' | 'admin';
+type View = 'booking' | 'profile' | 'bookings' | 'admin' | 'parcels';
 
 const STEP_INDEX: Record<Step, number> = { routes: 0, departures: 1, seats: 2, payment: 3, receipt: 4 };
 
-const VALID_VIEWS: View[] = ['booking', 'profile', 'bookings', 'admin'];
+const VALID_VIEWS: View[] = ['booking', 'profile', 'bookings', 'admin', 'parcels'];
 
 function viewFromHash(): View {
   const raw = window.location.hash.replace(/^#\/?/, '');
@@ -85,6 +86,7 @@ function App() {
         onOpenProfile={() => changeView('profile')}
         onOpenBookings={() => changeView('bookings')}
         onOpenAdmin={() => changeView('admin')}
+        onOpenParcels={() => changeView('parcels')}
       />
       <main className="flex-1">
         {authLoading && (
@@ -96,6 +98,7 @@ function App() {
         {!authLoading && user && view === 'profile' && <Profile onBack={() => changeView('booking')} />}
         {!authLoading && user && view === 'bookings' && <MyBookings onBack={() => changeView('booking')} />}
         {!authLoading && canUseAdmin && view === 'admin' && <Admin onBack={() => changeView('booking')} />}
+        {!authLoading && user && view === 'parcels' && <Parcels onBack={() => changeView('booking')} />}
         {!authLoading && user && view === 'booking' && (
           <>
             {step !== 'receipt' && <BookingSteps current={STEP_INDEX[step]} />}

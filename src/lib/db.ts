@@ -53,6 +53,47 @@ export type BookingGroup = {
   created_at: string;
 };
 
+export type ParcelStatus = 'pending' | 'in_transit' | 'delivered' | 'cancelled';
+export type ParcelType = 'document' | 'electronics' | 'clothing' | 'food' | 'other';
+
+export type Parcel = {
+  id: string;
+  user_id: string;
+  route_id: string | null;
+  departure_id: string | null;
+  sender_name: string;
+  sender_phone: string;
+  recipient_name: string;
+  recipient_phone: string;
+  pickup_location: string;
+  dropoff_location: string;
+  description: string;
+  weight_kg: number;
+  parcel_type: ParcelType;
+  status: ParcelStatus;
+  tracking_number: string;
+  fee: number;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+  routes: { id: string; origin: string; destination: string } | null;
+  departures: { id: string; departure_date: string; departure_time: string } | null;
+};
+
+export type ParcelInput = {
+  routeId: string | null;
+  departureId: string | null;
+  senderName: string;
+  senderPhone: string;
+  recipientName: string;
+  recipientPhone: string;
+  pickupLocation: string;
+  dropoffLocation: string;
+  description: string;
+  weightKg: number;
+  parcelType: ParcelType;
+};
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 type DepartureRow = Omit<Departure, 'vehicle_name' | 'plate_number'> & {
@@ -169,6 +210,40 @@ export const db = {
 
   async dismissCancelledBookings(paymentRef: string): Promise<void> {
     await callBookings<{ ok: true }>({ action: 'dismissCancelled', paymentRef }, true);
+  },
+
+  async deleteBookings(paymentRef: string): Promise<void> {
+    await callBookings<{ ok: true }>({ action: 'deleteBookings', paymentRef }, true);
+  },
+
+  async createParcel(input: ParcelInput): Promise<{ id: string; tracking_number: string; fee: number }> {
+    const { parcel } = await callBookings<{ parcel: { id: string; tracking_number: string; fee: number } }>(
+      {
+        action: 'createParcel',
+        routeId: input.routeId,
+        departureId: input.departureId,
+        senderName: input.senderName,
+        senderPhone: input.senderPhone,
+        recipientName: input.recipientName,
+        recipientPhone: input.recipientPhone,
+        pickupLocation: input.pickupLocation,
+        dropoffLocation: input.dropoffLocation,
+        description: input.description,
+        weightKg: input.weightKg,
+        parcelType: input.parcelType,
+      },
+      true,
+    );
+    return parcel;
+  },
+
+  async listMyParcels(): Promise<Parcel[]> {
+    const { parcels } = await callBookings<{ parcels: Parcel[] }>({ action: 'myParcels' }, true);
+    return parcels;
+  },
+
+  async deleteParcel(parcelId: string): Promise<void> {
+    await callBookings<{ ok: true }>({ action: 'deleteParcel', parcelId }, true);
   },
 
   async listBookingsForUser(): Promise<BookingGroup[]> {

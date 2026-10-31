@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { signOut } from 'firebase/auth';
-import { ChevronDown, LogIn, LogOut, Ticket, CircleUser as UserCircle } from 'lucide-react';
+import { ChevronDown, LogIn, LogOut, Package, Ticket, CircleUser as UserCircle } from 'lucide-react';
 import { AuthDialog } from '@/components/AuthDialog';
 import { useAuth } from '@/lib/authContext';
 import { auth } from '@/lib/firebase';
@@ -9,9 +9,10 @@ import { auth } from '@/lib/firebase';
 type Props = {
   onOpenProfile: () => void;
   onOpenBookings: () => void;
+  onOpenParcels: () => void;
 };
 
-export function AuthControls({ onOpenProfile, onOpenBookings }: Props) {
+export function AuthControls({ onOpenProfile, onOpenBookings, onOpenParcels }: Props) {
   const { user, loading } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -98,6 +99,16 @@ export function AuthControls({ onOpenProfile, onOpenBookings }: Props) {
             className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-brand-50 hover:text-brand-700"
           >
             <Ticket className="h-4 w-4" /> My bookings
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMenuOpen(false);
+              onOpenParcels();
+            }}
+            className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-brand-50 hover:text-brand-700"
+          >
+            <Package className="h-4 w-4" /> My parcels
           </button>
           <button
             type="button"

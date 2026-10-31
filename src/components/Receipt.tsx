@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Clock, Calendar, Bus, Armchair, Phone, Smartphone, CreditCard, Banknote, Loader as Loader2 } from 'lucide-react';
 import { db, type Booking, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
+import { downloadReceiptPDF } from '@/lib/pdfReceipt';
 
 type Props = {
   paymentRef: string;
@@ -154,10 +155,10 @@ export function Receipt({ paymentRef, onDone }: Props) {
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
-              onClick={() => window.print()}
+              onClick={() => downloadReceiptPDF({ bookings, departure, route, paymentRef })}
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-[0.98]"
             >
-              <Download className="h-4 w-4" /> Print / Save receipt
+              <Download className="h-4 w-4" /> Download PDF receipt
             </button>
             <button
               onClick={onDone}

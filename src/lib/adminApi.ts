@@ -1,5 +1,5 @@
 import { callFunction } from '@/lib/functionsClient';
-import type { Route, Departure, RefundStatus } from '@/lib/db';
+import type { Route, Departure, RefundStatus, ParcelStatus } from '@/lib/db';
 
 export const ADMIN_EMAIL = '6enard@gmail.com';
 
@@ -53,12 +53,37 @@ export type AdminBooking = {
   };
 };
 
+export type AdminParcel = {
+  id: string;
+  user_id: string;
+  route_id: string | null;
+  departure_id: string | null;
+  sender_name: string;
+  sender_phone: string;
+  recipient_name: string;
+  recipient_phone: string;
+  pickup_location: string;
+  dropoff_location: string;
+  description: string;
+  weight_kg: number;
+  parcel_type: string;
+  status: ParcelStatus;
+  tracking_number: string;
+  fee: number;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+  routes: { id: string; origin: string; destination: string } | null;
+  departures: { id: string; departure_date: string; departure_time: string; vehicles: { plate_number: string; vehicle_name: string } | null } | null;
+};
+
 export type AdminData = {
   routes: Route[];
   departures: AdminDeparture[];
   vehicles: AdminVehicle[];
   drivers: AdminDriver[];
   bookings: AdminBooking[];
+  parcels: AdminParcel[];
 };
 
 export type AdminTable = 'routes' | 'departures' | 'vehicles' | 'drivers';
@@ -77,4 +102,8 @@ export const adminApi = {
     callFunction<{ ok: true }>('admin', { action: 'cancelBooking', bookingId, reason, refundStatus }, true),
   uploadDriverPhoto: (driverId: string, contentType: string, data: string) =>
     callFunction<{ photo_url: string }>('admin', { action: 'uploadDriverPhoto', driverId, contentType, data }, true),
+  updateParcel: (parcelId: string, update: { status?: ParcelStatus; adminNotes?: string; fee?: number }) =>
+    callFunction<{ ok: true }>('admin', { action: 'updateParcel', parcelId, ...update }, true),
+  deleteParcel: (parcelId: string) =>
+    callFunction<{ ok: true }>('admin', { action: 'deleteParcel', parcelId }, true),
 };

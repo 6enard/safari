@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Ban, Bus, Calendar, Loader as Loader2, Route as RouteIcon, ShieldCheck, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, Ban, Bus, Calendar, Loader as Loader2, Package, Route as RouteIcon, ShieldCheck, Ticket, Users } from 'lucide-react';
 import { adminApi, type AdminData } from '@/lib/adminApi';
 import { RoutesAdmin } from '@/components/admin/RoutesAdmin';
 import { SchedulesAdmin } from '@/components/admin/SchedulesAdmin';
@@ -7,14 +7,15 @@ import { VehiclesAdmin } from '@/components/admin/VehiclesAdmin';
 import { DriversAdmin } from '@/components/admin/DriversAdmin';
 import { BookingsAdmin } from '@/components/admin/BookingsAdmin';
 import { CancellationsAdmin } from '@/components/admin/CancellationsAdmin';
+import { ParcelsAdmin } from '@/components/admin/ParcelsAdmin';
 
 type Props = {
   onBack: () => void;
 };
 
-type Tab = 'routes' | 'schedules' | 'vehicles' | 'drivers' | 'bookings' | 'cancellations';
+type Tab = 'routes' | 'schedules' | 'vehicles' | 'drivers' | 'bookings' | 'cancellations' | 'parcels';
 
-const VALID_TABS: Tab[] = ['routes', 'schedules', 'vehicles', 'drivers', 'bookings', 'cancellations'];
+const VALID_TABS: Tab[] = ['routes', 'schedules', 'vehicles', 'drivers', 'bookings', 'cancellations', 'parcels'];
 
 function tabFromHash(): Tab {
   const hash = window.location.hash;
@@ -34,6 +35,7 @@ const TABS: { id: Tab; label: string; icon: typeof RouteIcon }[] = [
   { id: 'drivers', label: 'Drivers', icon: Users },
   { id: 'bookings', label: 'Bookings', icon: Ticket },
   { id: 'cancellations', label: 'Cancellations', icon: Ban },
+  { id: 'parcels', label: 'Parcels', icon: Package },
 ];
 
 export function Admin({ onBack }: Props) {
@@ -143,6 +145,7 @@ export function Admin({ onBack }: Props) {
           {tab === 'drivers' && <DriversAdmin data={data} onChanged={load} />}
           {tab === 'bookings' && <BookingsAdmin data={data} onChanged={load} />}
           {tab === 'cancellations' && <CancellationsAdmin data={data} />}
+          {tab === 'parcels' && <ParcelsAdmin data={data} onChanged={load} />}
         </>
       )}
     </div>

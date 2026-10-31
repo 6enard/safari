@@ -141,6 +141,19 @@ export function BookingsAdmin({ data, onChanged }: Props) {
     [selectedDate, tripsByDate],
   );
 
+  const tripsByTime = useMemo(() => {
+    const map = new Map<string, typeof tripsForDate>();
+    for (const item of tripsForDate) {
+      const list = map.get(item.dep.departure_time);
+      if (list) {
+        list.push(item);
+      } else {
+        map.set(item.dep.departure_time, [item]);
+      }
+    }
+    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [tripsForDate]);
+
   const current = useMemo(
     () => filtered.find((it) => it.dep.id === selectedDepartureId) ?? null,
     [filtered, selectedDepartureId],
@@ -484,47 +497,55 @@ export function BookingsAdmin({ data, onChanged }: Props) {
                   No trips on {formatDate(selectedDate)}.
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <p className="px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
                     {formatDate(selectedDate)} · {tripsForDate.length} {tripsForDate.length === 1 ? 'trip' : 'trips'}
                   </p>
-                  {tripsForDate.map((item) => {
-                    const active = current?.dep.id === item.dep.id;
-                    const route = item.route;
-                    const vehicle = item.vehicle;
-                    return (
-                      <button
-                        key={item.dep.id}
-                        type="button"
-                        onClick={() => { setSelectedDepartureId(item.dep.id); setSelectedSeat(null); }}
-                        className={[
-                          'w-full rounded-xl border p-4 text-left transition-all',
-                          active
-                            ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300 shadow-sm'
-                            : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/50',
-                        ].join(' ')}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-semibold text-slate-900">
-                            {route ? `${route.origin} - ${route.destination}` : 'Unknown route'}
-                          </p>
-                          <span className={[
-                            'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold',
-                            item.bookedCount === SEAT_COUNT ? 'bg-red-100 text-red-700' : item.bookedCount > 0 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500',
-                          ].join(' ')}>
-                            {item.bookedCount}/{SEAT_COUNT}
-                          </span>
-                        </div>
-                        <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
-                          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime(item.dep.departure_time)}</span>
-                        </p>
-                        <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
-                          <Bus className="h-3 w-3" />
-                          {vehicle ? `${vehicle.vehicle_name} · ${vehicle.plate_number}` : 'No matatu assigned'}
-                        </p>
-                      </button>
-                    );
-                  })}
+                  {tripsByTime.map(([time, trips]) => (
+                    <div key={time} className="space-y-2">
+                      <div className="sticky top-0 z-10 flex items-center gap-2 rounded-lg bg-slate-100/95 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-600 backdrop-blur">
+                        <Clock className="h-3.5 w-3.5 text-brand-600" />
+                        {formatTime(time)}
+                        <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 ring-1 ring-slate-200">
+                          {trips.length} {trips.length === 1 ? 'matatu' : 'matatus'}
+                        </span>
+                      </div>
+                      {trips.map((item) => {
+                        const active = current?.dep.id === item.dep.id;
+                        const route = item.route;
+                        const vehicle = item.vehicle;
+                        return (
+                          <button
+                            key={item.dep.id}
+                            type="button"
+                            onClick={() => { setSelectedDepartureId(item.dep.id); setSelectedSeat(null); }}
+                            className={[
+                              'w-full rounded-xl border p-4 text-left transition-all',
+                              active
+                                ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300 shadow-sm'
+                                : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/50',
+                            ].join(' ')}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-semibold text-slate-900">
+                                {route ? `${route.origin} - ${route.destination}` : 'Unknown route'}
+                              </p>
+                              <span className={[
+                                'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold',
+                                item.bookedCount === SEAT_COUNT ? 'bg-red-100 text-red-700' : item.bookedCount > 0 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500',
+                              ].join(' ')}>
+                                {item.bookedCount}/{SEAT_COUNT}
+                              </span>
+                            </div>
+                            <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
+                              <Bus className="h-3 w-3" />
+                              {vehicle ? `${vehicle.vehicle_name} · ${vehicle.plate_number}` : 'No matatu assigned'}
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
               )
             ) : (

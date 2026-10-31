@@ -1,6 +1,7 @@
 import { auth } from '@/lib/firebase';
+import { SUPABASE_URL } from '@/lib/supabaseEnv';
 
-const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
 export async function callFunction<T>(
   name: 'admin' | 'bookings',

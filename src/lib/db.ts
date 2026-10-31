@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { callFunction } from '@/lib/functionsClient';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabaseEnv';
 
 export type Route = {
   id: string;
@@ -46,7 +47,7 @@ export type BookingGroup = {
   created_at: string;
 };
 
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 type DepartureRow = Omit<Departure, 'vehicle_name' | 'plate_number'> & {
   vehicles: { plate_number: string; vehicle_name: string } | null;

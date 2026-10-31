@@ -69,4 +69,6 @@ export const adminApi = {
     callFunction<{ row: unknown }>('admin', { action: 'save', table, id, row }, true),
   remove: (table: AdminTable, id: string) =>
     callFunction<{ ok: true }>('admin', { action: 'delete', table, id }, true),
+  cancelBooking: (bookingId: string) =>
+    callFunction<{ ok: true }>('admin', { action: 'cancelBooking', bookingId }, true),
 };

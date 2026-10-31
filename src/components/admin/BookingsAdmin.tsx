@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Armchair, Bus, Calendar, Clock, MapPin, Phone, User as UserIcon, X, Info, Search, Ticket } from 'lucide-react';
-import { type AdminBooking, type AdminData } from '@/lib/adminApi';
-import { inputClass } from '@/components/admin/AdminShared';
+import { Armchair, Bus, Calendar, Clock, MapPin, Phone, User as UserIcon, X, Info, Search, Ticket, Download, Ban, Loader as Loader2 } from 'lucide-react';
+import { adminApi, errorText, type AdminBooking, type AdminData } from '@/lib/adminApi';
+import { FormError, inputClass } from '@/components/admin/AdminShared';
 import { formatDate, formatKes, formatTime, formatDateTime } from '@/lib/format';
 
 type Props = {
   data: AdminData;
+  onChanged: () => Promise<void>;
 };
 
 type SeatInfo = { status: 'available' | 'taken'; booking?: AdminBooking };
@@ -30,9 +31,28 @@ function SeatSVG({ className }: { className?: string }) {
   );
 }
 
-export function BookingsAdmin({ data }: Props) {
+function csvEscape(value: string): string {
+  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  return value;
+}
+
+function downloadCsv(rows: string[][], filename: string) {
+  const csv = rows.map((r) => r.map(csvEscape).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function BookingsAdmin({ data, onChanged }: Props) {
   const [search, setSearch] = useState('');
+  const [passengerSearch, setPassengerSearch] = useState('');
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [pageError, setPageError] = useState<string | null>(null);
 
   const routeById = useMemo(() => new Map(data.routes.map((r) => [r.id, r])), [data.routes]);
   const vehicleById = useMemo(() => new Map(data.vehicles.map((v) => [v.id, v])), [data.vehicles]);
@@ -40,6 +60,7 @@ export function BookingsAdmin({ data }: Props) {
   const bookingsByDeparture = useMemo(() => {
     const map = new Map<string, Map<number, AdminBooking>>();
     for (const b of data.bookings) {
+      if (b.status === 'cancelled') continue;
       let seatMap = map.get(b.departure_id);
       if (!seatMap) {
         seatMap = new Map();
@@ -98,6 +119,77 @@ export function BookingsAdmin({ data }: Props) {
     }
   }
 
+  // Passenger search: searches across ALL bookings, not just selected trip
+  const passengerResults = useMemo(() => {
+    const q = passengerSearch.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return data.bookings
+      .filter((b) => b.status !== 'cancelled')
+      .filter((b) => {
+        return (
+          b.passenger_name.toLowerCase().includes(q) ||
+          b.passenger_phone.toLowerCase().includes(q) ||
+          b.payment_ref.toLowerCase().includes(q)
+        );
+      })
+      .slice(0, 20);
+  }, [data.bookings, passengerSearch]);
+
+  const allPassengers = useMemo(() => {
+    return data.bookings
+      .filter((b) => b.status !== 'cancelled')
+      .map((b) => {
+        const dep = b.departures;
+        const route = dep?.routes;
+        const vehicle = dep?.vehicles;
+        return {
+          booking: b,
+          routeName: route ? `${route.origin} - ${route.destination}` : '',
+          date: dep?.departure_date ?? '',
+          time: dep?.departure_time ?? '',
+          vehicleName: vehicle ? `${vehicle.vehicle_name} (${vehicle.plate_number})` : '',
+          fare: dep?.fare ?? 0,
+        };
+      });
+  }, [data.bookings]);
+
+  function handleExport() {
+    const headers = ['Passenger Name', 'Phone', 'Seat', 'Route', 'Date', 'Time', 'Matatu', 'Payment Method', 'Receipt No.', 'Fare (KES)', 'Booked On', 'Status'];
+    const rows: string[][] = [headers];
+    for (const p of allPassengers) {
+      rows.push([
+        p.booking.passenger_name,
+        p.booking.passenger_phone,
+        String(p.booking.seat_number),
+        p.routeName,
+        p.date,
+        p.time,
+        p.vehicleName,
+        p.booking.payment_method,
+        p.booking.payment_ref,
+        String(p.fare),
+        formatDateTime(p.booking.created_at),
+        p.booking.status,
+      ]);
+    }
+    const dateStr = new Date().toISOString().slice(0, 10);
+    downloadCsv(rows, `bookings-export-${dateStr}.csv`);
+  }
+
+  async function handleCancelBooking(bookingId: string) {
+    setPageError(null);
+    setCancellingId(bookingId);
+    try {
+      await adminApi.cancelBooking(bookingId);
+      setSelectedSeat(null);
+      await onChanged();
+    } catch (err) {
+      setPageError(errorText(err));
+    } finally {
+      setCancellingId(null);
+    }
+  }
+
   if (data.departures.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center text-slate-500">
@@ -110,20 +202,92 @@ export function BookingsAdmin({ data }: Props) {
 
   return (
     <section>
+      {pageError && <div className="mb-4"><FormError message={pageError} /></div>}
+
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <p className="text-sm text-slate-600">
-          {data.bookings.length} total {data.bookings.length === 1 ? 'booking' : 'bookings'} across {data.departures.length} {data.departures.length === 1 ? 'trip' : 'trips'}.
+          {allPassengers.length} active {allPassengers.length === 1 ? 'booking' : 'bookings'} across {data.departures.length} {data.departures.length === 1 ? 'trip' : 'trips'}.
         </p>
-        <div className="relative sm:w-72">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="relative sm:w-72">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              className={`${inputClass} pl-10`}
+              type="search"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setSelectedDepartureIdx(0); setSelectedSeat(null); }}
+              placeholder="Search trips by route, plate, date..."
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={allPassengers.length === 0}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-700 transition-all hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Download className="h-4 w-4" /> Export CSV
+          </button>
+        </div>
+      </div>
+
+      {/* Passenger search */}
+      <div className="mb-5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+        <div className="relative mb-3">
+          <UserIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             className={`${inputClass} pl-10`}
             type="search"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setSelectedDepartureIdx(0); setSelectedSeat(null); }}
-            placeholder="Search by route, plate, date..."
+            value={passengerSearch}
+            onChange={(e) => setPassengerSearch(e.target.value)}
+            placeholder="Search by passenger name, phone, or receipt number..."
           />
         </div>
+        {passengerSearch.trim().length >= 2 && (
+          passengerResults.length === 0 ? (
+            <p className="py-3 text-center text-sm text-slate-500">No passengers found matching "{passengerSearch}".</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {passengerResults.map((b) => {
+                const dep = b.departures;
+                const route = dep?.routes;
+                const vehicle = dep?.vehicles;
+                return (
+                  <li key={b.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                        <UserIcon className="h-3.5 w-3.5 text-brand-600" />
+                        {b.passenger_name}
+                        <span className="rounded-md bg-brand-100 px-1.5 text-xs font-bold text-brand-700">Seat {b.seat_number}</span>
+                      </p>
+                      <p className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
+                        <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{b.passenger_phone}</span>
+                        <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{route ? `${route.origin} - ${route.destination}` : '—'}</span>
+                        <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{dep ? formatDate(dep.departure_date) : '—'}</span>
+                        <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{dep ? formatTime(dep.departure_time) : '—'}</span>
+                        {vehicle && <span className="inline-flex items-center gap-1"><Bus className="h-3 w-3" />{vehicle.plate_number}</span>}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 sm:flex-shrink-0">
+                      <span className="font-mono text-xs text-slate-500">{b.payment_ref}</span>
+                      <button
+                        type="button"
+                        disabled={cancellingId === b.id}
+                        onClick={() => handleCancelBooking(b.id)}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                      >
+                        {cancellingId === b.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Ban className="h-3.5 w-3.5" />}
+                        Cancel
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )
+        )}
+        {passengerSearch.trim().length < 2 && passengerSearch.trim().length > 0 && (
+          <p className="py-2 text-center text-xs text-slate-400">Type at least 2 characters to search.</p>
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -324,6 +488,20 @@ export function BookingsAdmin({ data }: Props) {
                       value={formatKes(current.dep.fare)}
                     />
                   </dl>
+                  <div className="border-t border-slate-100 p-4">
+                    <button
+                      type="button"
+                      disabled={cancellingId === selectedBooking.id}
+                      onClick={() => handleCancelBooking(selectedBooking.id)}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {cancellingId === selectedBooking.id ? (
+                        <><Loader2 className="h-4 w-4 animate-spin" /> Cancelling...</>
+                      ) : (
+                        <><Ban className="h-4 w-4" /> Cancel this booking</>
+                      )}
+                    </button>
+                  </div>
                 </div>
               ) : selectedSeat != null ? (
                 <div className="rounded-xl border border-slate-200 bg-white p-4 text-center text-sm text-slate-500 animate-fade-in">

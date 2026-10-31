@@ -86,6 +86,17 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (action === 'cancelBooking') {
+      const { bookingId } = await req.json();
+      if (typeof bookingId !== 'string') return jsonResponse({ error: 'Missing booking id.' }, 400);
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', bookingId);
+      if (error) return jsonResponse({ error: error.message }, 400);
+      return jsonResponse({ ok: true });
+    }
+
     if (typeof table !== 'string' || !(table in TABLE_FIELDS)) {
       return jsonResponse({ error: 'Unknown table.' }, 400);
     }

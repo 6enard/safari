@@ -112,7 +112,7 @@ export function Admin({ onBack }: Props) {
           {tab === 'schedules' && <SchedulesAdmin data={data} onChanged={load} />}
           {tab === 'vehicles' && <VehiclesAdmin data={data} onChanged={load} />}
           {tab === 'drivers' && <DriversAdmin data={data} onChanged={load} />}
-          {tab === 'bookings' && <BookingsAdmin data={data} />}
+          {tab === 'bookings' && <BookingsAdmin data={data} onChanged={load} />}
         </>
       )}
     </div>

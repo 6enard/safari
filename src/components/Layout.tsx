@@ -1,4 +1,5 @@
 import { Bus } from 'lucide-react';
+import { AuthControls } from '@/components/AuthControls';
 
 export function Header() {
   return (
@@ -14,16 +15,19 @@ export function Header() {
             <p className="text-[11px] text-slate-500">Matatu booking · Kenya</p>
           </div>
         </div>
-        <nav className="hidden items-center gap-1 text-sm font-medium text-slate-600 sm:flex">
-          <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Routes</a>
-          <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Help</a>
-          <a
-            href="#"
-            className="rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-2 text-white shadow-md shadow-brand-500/25 transition-all hover:shadow-lg hover:shadow-brand-500/40 hover:brightness-110"
-          >
-            My bookings
-          </a>
-        </nav>
+        <div className="flex items-center gap-2">
+          <nav className="hidden items-center gap-1 text-sm font-medium text-slate-600 sm:flex">
+            <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Routes</a>
+            <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Help</a>
+            <a
+              href="#"
+              className="rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-2 text-white shadow-md shadow-brand-500/25 transition-all hover:shadow-lg hover:shadow-brand-500/40 hover:brightness-110"
+            >
+              My bookings
+            </a>
+          </nav>
+          <AuthControls />
+        </div>
       </div>
     </header>
   );

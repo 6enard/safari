@@ -135,6 +135,7 @@ export function BookingsAdmin({ data, onChanged }: Props) {
     );
     return sorted[0]?.id ?? null;
   });
+  const [expandedTimes, setExpandedTimes] = useState<Set<string>>(new Set());
 
   const tripsForDate = useMemo(
     () => (selectedDate ? tripsByDate.get(selectedDate) ?? [] : []),
@@ -164,10 +165,15 @@ export function BookingsAdmin({ data, onChanged }: Props) {
     if (filtered.length === 0) {
       setSelectedDate(null);
       setSelectedDepartureId(null);
+      setExpandedTimes(new Set());
       return;
     }
     if (!selectedDate || !tripsByDate.has(selectedDate)) {
-      setSelectedDate(filtered[0].dep.departure_date);
+      const firstDate = filtered[0].dep.departure_date;
+      setSelectedDate(firstDate);
+      const times = new Set<string>();
+      for (const t of tripsByDate.get(firstDate) ?? []) times.add(t.dep.departure_time);
+      setExpandedTimes(times);
     }
     if (!selectedDepartureId || !filtered.some((it) => it.dep.id === selectedDepartureId)) {
       setSelectedDepartureId(filtered[0].dep.id);
@@ -208,6 +214,21 @@ export function BookingsAdmin({ data, onChanged }: Props) {
     setSelectedDate(iso);
     setSelectedDepartureId(trips[0].dep.id);
     setSelectedSeat(null);
+    const times = new Set<string>();
+    for (const t of trips) times.add(t.dep.departure_time);
+    setExpandedTimes(times);
+  }
+
+  function toggleTime(time: string) {
+    setExpandedTimes((prev) => {
+      const next = new Set(prev);
+      if (next.has(time)) {
+        next.delete(time);
+      } else {
+        next.add(time);
+      }
+      return next;
+    });
   }
 
   const seatStates: SeatInfo[] = useMemo(() => {
@@ -497,55 +518,81 @@ export function BookingsAdmin({ data, onChanged }: Props) {
                   No trips on {formatDate(selectedDate)}.
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <p className="px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    {formatDate(selectedDate)} · {tripsForDate.length} {tripsForDate.length === 1 ? 'trip' : 'trips'}
+                    {formatDate(selectedDate)} · {tripsForDate.length} {tripsForDate.length === 1 ? 'trip' : 'trips'} · tap a time to expand
                   </p>
-                  {tripsByTime.map(([time, trips]) => (
-                    <div key={time} className="space-y-2">
-                      <div className="sticky top-0 z-10 flex items-center gap-2 rounded-lg bg-slate-100/95 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-600 backdrop-blur">
-                        <Clock className="h-3.5 w-3.5 text-brand-600" />
-                        {formatTime(time)}
-                        <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 ring-1 ring-slate-200">
-                          {trips.length} {trips.length === 1 ? 'matatu' : 'matatus'}
-                        </span>
-                      </div>
-                      {trips.map((item) => {
-                        const active = current?.dep.id === item.dep.id;
-                        const route = item.route;
-                        const vehicle = item.vehicle;
-                        return (
-                          <button
-                            key={item.dep.id}
-                            type="button"
-                            onClick={() => { setSelectedDepartureId(item.dep.id); setSelectedSeat(null); }}
-                            className={[
-                              'w-full rounded-xl border p-4 text-left transition-all',
-                              active
-                                ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300 shadow-sm'
-                                : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/50',
-                            ].join(' ')}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="font-semibold text-slate-900">
-                                {route ? `${route.origin} - ${route.destination}` : 'Unknown route'}
-                              </p>
-                              <span className={[
-                                'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold',
-                                item.bookedCount === SEAT_COUNT ? 'bg-red-100 text-red-700' : item.bookedCount > 0 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500',
-                              ].join(' ')}>
-                                {item.bookedCount}/{SEAT_COUNT}
-                              </span>
-                            </div>
-                            <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
-                              <Bus className="h-3 w-3" />
-                              {vehicle ? `${vehicle.vehicle_name} · ${vehicle.plate_number}` : 'No matatu assigned'}
+                  {tripsByTime.map(([time, trips]) => {
+                    const expanded = expandedTimes.has(time);
+                    const totalBooked = trips.reduce((s, t) => s + t.bookedCount, 0);
+                    const anyActive = trips.some((t) => current?.dep.id === t.dep.id);
+                    return (
+                      <div key={time} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <button
+                          type="button"
+                          onClick={() => toggleTime(time)}
+                          className={[
+                            'flex w-full items-center gap-3 px-4 py-3 text-left transition-all',
+                            anyActive ? 'bg-brand-50' : 'hover:bg-slate-50',
+                          ].join(' ')}
+                        >
+                          <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-sm">
+                            <Clock className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-slate-900">{formatTime(time)}</p>
+                            <p className="text-xs text-slate-500">
+                              {trips.length} {trips.length === 1 ? 'matatu' : 'matatus'} · {totalBooked} seats booked
                             </p>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ))}
+                          </div>
+                          <ChevronRight
+                            className={[
+                              'h-4 w-4 flex-shrink-0 text-slate-400 transition-transform',
+                              expanded ? 'rotate-90' : '',
+                            ].join(' ')}
+                          />
+                        </button>
+                        {expanded && (
+                          <div className="space-y-2 border-t border-slate-100 p-3 animate-fade-in">
+                            {trips.map((item) => {
+                              const active = current?.dep.id === item.dep.id;
+                              const route = item.route;
+                              const vehicle = item.vehicle;
+                              return (
+                                <button
+                                  key={item.dep.id}
+                                  type="button"
+                                  onClick={() => { setSelectedDepartureId(item.dep.id); setSelectedSeat(null); }}
+                                  className={[
+                                    'w-full rounded-xl border p-4 text-left transition-all',
+                                    active
+                                      ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300 shadow-sm'
+                                      : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/50',
+                                  ].join(' ')}
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <p className="font-semibold text-slate-900">
+                                      {route ? `${route.origin} - ${route.destination}` : 'Unknown route'}
+                                    </p>
+                                    <span className={[
+                                      'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold',
+                                      item.bookedCount === SEAT_COUNT ? 'bg-red-100 text-red-700' : item.bookedCount > 0 ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500',
+                                    ].join(' ')}>
+                                      {item.bookedCount}/{SEAT_COUNT}
+                                    </span>
+                                  </div>
+                                  <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
+                                    <Bus className="h-3 w-3" />
+                                    {vehicle ? `${vehicle.vehicle_name} · ${vehicle.plate_number}` : 'No matatu assigned'}
+                                  </p>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )
             ) : (

@@ -1,5 +1,7 @@
-import { Bus } from 'lucide-react';
+import { Bus, ShieldCheck } from 'lucide-react';
 import { AuthControls } from '@/components/AuthControls';
+import { useAuth } from '@/lib/authContext';
+import { isAdminEmail } from '@/lib/adminApi';
 
 type HeaderProps = {
   onOpenProfile: () => void;
@@ -8,6 +10,8 @@ type HeaderProps = {
 };
 
 export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderProps) {
+  const { user } = useAuth();
+  const canUseAdmin = Boolean(user && isAdminEmail(user.email) && user.emailVerified);
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl transition-shadow">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
@@ -22,6 +26,17 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {canUseAdmin && (
+            <button
+              type="button"
+              onClick={onOpenAdmin}
+              aria-label="Admin console"
+              className="inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 transition-all hover:border-brand-300 hover:bg-brand-100"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </button>
+          )}
           <nav className="hidden items-center gap-1 text-sm font-medium text-slate-600 sm:flex">
             <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Routes</a>
             <a href="#" className="rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700">Help</a>
@@ -33,7 +48,7 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
               My bookings
             </button>
           </nav>
-          <AuthControls onOpenProfile={onOpenProfile} onOpenBookings={onOpenBookings} onOpenAdmin={onOpenAdmin} />
+          <AuthControls onOpenProfile={onOpenProfile} onOpenBookings={onOpenBookings} />
         </div>
       </div>
     </header>

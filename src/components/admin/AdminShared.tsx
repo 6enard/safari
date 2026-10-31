@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { X, Trash2, Loader as Loader2 } from 'lucide-react';
 
 export const inputClass =
-  'w-full rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200';
+  'w-full rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 text-base text-slate-900 sm:text-sm outline-none transition-all focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200';
 
 export function FormModal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   useEffect(() => {

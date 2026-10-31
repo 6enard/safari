@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Armchair, Bus, Calendar, Clock, MapPin, Phone, User as UserIcon, X, Info, Search, Ticket, Download, Ban, Loader as Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { adminApi, errorText, type AdminBooking, type AdminData } from '@/lib/adminApi';
-import { FormError, inputClass } from '@/components/admin/AdminShared';
-import { formatDate, formatKes, formatTime, formatDateTime, toISO } from '@/lib/format';
+import { Armchair, Bus, Calendar, Clock, MapPin, Phone, User as UserIcon, X, Info, Search, Ticket, Download, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { AdminBooking, AdminData } from '@/lib/adminApi';
+import { inputClass } from '@/components/admin/AdminShared';
+import { CancelBookingDialog } from '@/components/admin/CancelBookingDialog';
+import { formatDate, formatKes, formatTime, formatDateTime, refundStatusLabel, toISO } from '@/lib/format';
 
 type Props = {
   data: AdminData;
@@ -54,8 +55,7 @@ export function BookingsAdmin({ data, onChanged }: Props) {
   const [search, setSearch] = useState('');
   const [passengerSearch, setPassengerSearch] = useState('');
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [pageError, setPageError] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<AdminBooking | null>(null);
 
   const routeById = useMemo(() => new Map(data.routes.map((r) => [r.id, r])), [data.routes]);
   const vehicleById = useMemo(() => new Map(data.vehicles.map((v) => [v.id, v])), [data.vehicles]);
@@ -254,7 +254,6 @@ export function BookingsAdmin({ data, onChanged }: Props) {
     const q = passengerSearch.trim().toLowerCase();
     if (q.length < 2) return [];
     return data.bookings
-      .filter((b) => b.status !== 'cancelled')
       .filter((b) => {
         return (
           b.passenger_name.toLowerCase().includes(q) ||
@@ -306,18 +305,10 @@ export function BookingsAdmin({ data, onChanged }: Props) {
     downloadCsv(rows, `bookings-export-${dateStr}.csv`);
   }
 
-  async function handleCancelBooking(bookingId: string) {
-    setPageError(null);
-    setCancellingId(bookingId);
-    try {
-      await adminApi.cancelBooking(bookingId);
-      setSelectedSeat(null);
-      await onChanged();
-    } catch (err) {
-      setPageError(errorText(err));
-    } finally {
-      setCancellingId(null);
-    }
+  async function handleCancelled() {
+    setCancelTarget(null);
+    setSelectedSeat(null);
+    await onChanged();
   }
 
   if (data.departures.length === 0) {
@@ -332,8 +323,6 @@ export function BookingsAdmin({ data, onChanged }: Props) {
 
   return (
     <section>
-      {pageError && <div className="mb-4"><FormError message={pageError} /></div>}
-
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <p className="text-sm text-slate-600">
           {allPassengers.length} active {allPassengers.length === 1 ? 'booking' : 'bookings'} across {data.departures.length} {data.departures.length === 1 ? 'trip' : 'trips'}.
@@ -381,13 +370,15 @@ export function BookingsAdmin({ data, onChanged }: Props) {
                 const dep = b.departures;
                 const route = dep?.routes;
                 const vehicle = dep?.vehicles;
+                const cancelled = b.status === 'cancelled';
                 return (
-                  <li key={b.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <li key={b.id} className={`flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between ${cancelled ? 'opacity-75' : ''}`}>
                     <div className="min-w-0">
-                      <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                      <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-900">
                         <UserIcon className="h-3.5 w-3.5 text-brand-600" />
                         {b.passenger_name}
                         <span className="rounded-md bg-brand-100 px-1.5 text-xs font-bold text-brand-700">Seat {b.seat_number}</span>
+                        {cancelled && <span className="rounded-md bg-red-100 px-1.5 text-xs font-bold text-red-700">Cancelled</span>}
                       </p>
                       <p className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
                         <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{b.passenger_phone}</span>
@@ -397,17 +388,23 @@ export function BookingsAdmin({ data, onChanged }: Props) {
                         {vehicle && <span className="inline-flex items-center gap-1"><Bus className="h-3 w-3" />{vehicle.plate_number}</span>}
                       </p>
                     </div>
+                    {cancelled && (
+                      <p className="text-xs text-slate-600 sm:basis-full">
+                        <span className="font-semibold">Reason:</span> {b.cancellation_reason ?? '—'} · <span className="font-semibold">{refundStatusLabel(b.refund_status)}</span>
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 sm:flex-shrink-0">
                       <span className="font-mono text-xs text-slate-500">{b.payment_ref}</span>
-                      <button
-                        type="button"
-                        disabled={cancellingId === b.id}
-                        onClick={() => handleCancelBooking(b.id)}
-                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
-                      >
-                        {cancellingId === b.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Ban className="h-3.5 w-3.5" />}
-                        Cancel
-                      </button>
+                      {!cancelled && (
+                        <button
+                          type="button"
+                          onClick={() => setCancelTarget(b)}
+                          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                        >
+                          <Ban className="h-3.5 w-3.5" />
+                          Cancel
+                        </button>
+                      )}
                     </div>
                   </li>
                 );
@@ -756,15 +753,10 @@ export function BookingsAdmin({ data, onChanged }: Props) {
                   <div className="border-t border-slate-100 p-4">
                     <button
                       type="button"
-                      disabled={cancellingId === selectedBooking.id}
-                      onClick={() => handleCancelBooking(selectedBooking.id)}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => setCancelTarget(selectedBooking)}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-50"
                     >
-                      {cancellingId === selectedBooking.id ? (
-                        <><Loader2 className="h-4 w-4 animate-spin" /> Cancelling...</>
-                      ) : (
-                        <><Ban className="h-4 w-4" /> Cancel this booking</>
-                      )}
+                      <Ban className="h-4 w-4" /> Cancel this booking
                     </button>
                   </div>
                 </div>
@@ -781,6 +773,14 @@ export function BookingsAdmin({ data, onChanged }: Props) {
             </div>
           )}
         </div>
+      )}
+
+      {cancelTarget && (
+        <CancelBookingDialog
+          booking={cancelTarget}
+          onClose={() => setCancelTarget(null)}
+          onCancelled={handleCancelled}
+        />
       )}
     </section>
   );

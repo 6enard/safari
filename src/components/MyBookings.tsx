@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Armchair, Bus, Calendar, Clock, Loader as Loader2, MapPin, Ticket } from 'lucide-react';
 import { db, type BookingGroup } from '@/lib/db';
-import { formatDate, formatDateTime, formatKes, formatTime } from '@/lib/format';
+import { formatDate, formatDateTime, formatKes, formatTime, refundStatusLabel } from '@/lib/format';
 
 type Props = {
   onBack: () => void;
@@ -122,8 +122,11 @@ export function MyBookings({ onBack }: Props) {
       {!loading && !error && visible.length > 0 && (
         <ul className="space-y-4">
           {visible.map((group, idx) => {
-            const seats = group.bookings.length;
+            const confirmed = group.bookings.filter((b) => b.status !== 'cancelled');
+            const cancelled = group.bookings.filter((b) => b.status === 'cancelled');
+            const seats = confirmed.length;
             const total = group.departure.fare * seats;
+            const fullyCancelled = seats === 0;
             return (
               <li
                 key={group.payment_ref}
@@ -143,26 +146,55 @@ export function MyBookings({ onBack }: Props) {
                       <span className="inline-flex items-center gap-1.5"><Bus className="h-3.5 w-3.5" />{group.departure.vehicle_name} · {group.departure.plate_number}</span>
                     </p>
                   </div>
-                  <span
-                    className={[
-                      'inline-flex w-fit flex-shrink-0 rounded-full px-3 py-1 text-xs font-semibold ring-1',
-                      filter === 'upcoming' ? 'bg-brand-50 text-brand-700 ring-brand-200' : 'bg-slate-100 text-slate-600 ring-slate-200',
-                    ].join(' ')}
-                  >
-                    {filter === 'upcoming' ? 'Upcoming' : 'Completed'}
-                  </span>
+                  {fullyCancelled ? (
+                    <span className="inline-flex w-fit flex-shrink-0 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-200">
+                      Cancelled
+                    </span>
+                  ) : (
+                    <span
+                      className={[
+                        'inline-flex w-fit flex-shrink-0 rounded-full px-3 py-1 text-xs font-semibold ring-1',
+                        filter === 'upcoming' ? 'bg-brand-50 text-brand-700 ring-brand-200' : 'bg-slate-100 text-slate-600 ring-slate-200',
+                      ].join(' ')}
+                    >
+                      {filter === 'upcoming' ? 'Upcoming' : 'Completed'}
+                    </span>
+                  )}
                 </div>
 
                 <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-end">
                   <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Armchair className="mr-1 h-4 w-4 text-slate-400" />
-                      {group.bookings.map((b) => (
-                        <span key={b.id} className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-brand-100 px-1.5 text-xs font-bold text-brand-700">
-                          {b.seat_number}
-                        </span>
-                      ))}
-                    </div>
+                    {confirmed.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Armchair className="mr-1 h-4 w-4 text-slate-400" />
+                        {confirmed.map((b) => (
+                          <span key={b.id} className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-brand-100 px-1.5 text-xs font-bold text-brand-700">
+                            {b.seat_number}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {cancelled.length > 0 && (
+                      <ul className="space-y-2">
+                        {cancelled.map((b) => (
+                          <li key={b.id} className="rounded-xl border border-red-200 bg-red-50/60 p-3">
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-white px-1.5 font-bold text-red-700 line-through ring-1 ring-red-200">
+                                {b.seat_number}
+                              </span>
+                              <span className="rounded-full bg-red-100 px-2 py-0.5 font-semibold text-red-700">Cancelled</span>
+                              <span className="rounded-full bg-white px-2 py-0.5 font-semibold text-slate-700 ring-1 ring-slate-200">{refundStatusLabel(b.refund_status)}</span>
+                            </div>
+                            <p className="mt-2 text-sm text-slate-700">
+                              <span className="font-semibold">Reason:</span> {b.cancellation_reason ?? 'Not specified'}
+                            </p>
+                            {b.cancelled_at && (
+                              <p className="mt-1 text-xs text-slate-500">Cancelled on {formatDateTime(b.cancelled_at)}</p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <p className="text-xs text-slate-500">
                       Receipt <span className="font-mono font-semibold text-slate-700">{group.payment_ref}</span> · Booked {formatDateTime(group.created_at)}
                     </p>

@@ -14,7 +14,7 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
   const canUseAdmin = Boolean(user && isAdminEmail(user.email) && user.emailVerified);
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl transition-shadow">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-4 sm:py-3.5">
         <div className="flex items-center gap-2.5 transition-transform hover:scale-[1.02]">
           <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-lg shadow-brand-500/30">
             <Bus className="h-5 w-5" />
@@ -22,10 +22,10 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin }: HeaderPro
           </span>
           <div className="leading-tight">
             <p className="text-base font-bold tracking-tight text-slate-900">Tiketi</p>
-            <p className="text-[11px] text-slate-500">Matatu booking · Kenya</p>
+            <p className="hidden text-[11px] text-slate-500 sm:block">Matatu booking · Kenya</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
           {canUseAdmin && (
             <button
               type="button"

@@ -69,7 +69,8 @@ export function Receipt({ paymentRef, onDone }: Props) {
   }
 
   const MethodIcon = methodIcon[bookings[0].payment_method] ?? Smartphone;
-  const totalFare = departure.fare * bookings.length;
+  const activeBookings = bookings.filter((b) => b.status !== 'cancelled');
+  const totalFare = departure.fare * activeBookings.length;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -115,7 +116,7 @@ export function Receipt({ paymentRef, onDone }: Props) {
                 {bookings.map((b) => (
                   <span
                     key={b.id}
-                    className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-brand-100 px-1.5 text-xs font-bold text-brand-700"
+                    className={`inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 text-xs font-bold ${b.status === 'cancelled' ? 'bg-red-50 text-red-700 line-through ring-1 ring-red-200' : 'bg-brand-100 text-brand-700'}`}
                   >
                     {b.seat_number}
                   </span>

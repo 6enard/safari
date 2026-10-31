@@ -113,7 +113,7 @@ export function Admin({ onBack }: Props) {
 
       {!loading && data && (
         <>
-          <div role="tablist" className="mb-8 flex gap-1 overflow-x-auto rounded-2xl bg-slate-100 p-1">
+          <div role="tablist" className="mb-8 grid grid-cols-3 gap-1 rounded-2xl bg-slate-100 p-1 sm:flex">
             {TABS.map((t) => {
               const Icon = t.icon;
               const active = tab === t.id;
@@ -125,7 +125,7 @@ export function Admin({ onBack }: Props) {
                   aria-selected={active}
                   onClick={() => changeTab(t.id)}
                   className={[
-                    'inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                    'inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all sm:gap-2 sm:px-4 sm:text-sm',
                     active ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700',
                   ].join(' ')}
                 >

@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import {
   ArrowLeft, Package, Plus, Trash2, Loader as Loader2, MapPin, Phone, User as UserIcon,
   Clock, Calendar, PackageCheck, PackageOpen, Truck, X, CircleCheck as CheckCircle2,
-  Weight, Tag, Route as RouteIcon, Bus,
+  Weight, Tag, Route as RouteIcon, Bus, Download,
 } from 'lucide-react';
 import { db, type Parcel } from '@/lib/db';
 import { formatKes, formatDate, formatDateTime, formatTime } from '@/lib/format';
 import { ParcelSendFlow } from '@/components/ParcelSendFlow';
+import { ParcelReceipt } from '@/components/ParcelReceipt';
+import { downloadParcelReceiptPDF } from '@/lib/pdfReceipt';
 
 type Props = {
   onBack: () => void;
@@ -36,6 +38,7 @@ export function Parcels({ onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [receiptParcel, setReceiptParcel] = useState<Parcel | null>(null);
 
   async function load() {
     setLoading(true);
@@ -65,10 +68,24 @@ export function Parcels({ onBack }: Props) {
     }
   }
 
-  function handleParcelSent() {
-    setSuccess('Your parcel has been sent! You can track it below.');
-    setTab('list');
+  function handleParcelSent(parcel: Parcel) {
+    setReceiptParcel(parcel);
     load();
+  }
+
+  if (receiptParcel) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-10">
+        <ParcelReceipt
+          parcel={receiptParcel}
+          onDone={() => {
+            setReceiptParcel(null);
+            setSuccess('Your parcel has been sent! You can track it below.');
+            setTab('list');
+          }}
+        />
+      </div>
+    );
   }
 
   return (
@@ -78,7 +95,7 @@ export function Parcels({ onBack }: Props) {
         onClick={onBack}
         className="group mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-brand-700"
       >
-        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> Back to booking
+        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> Back to home
       </button>
 
       <div className="mb-8 animate-slide-up">
@@ -218,15 +235,22 @@ export function Parcels({ onBack }: Props) {
                       )}
                       <p className="text-xs text-slate-500">Sent {formatDateTime(p.created_at)}</p>
                     </div>
-                    <div className="text-left sm:text-right">
+                    <div className="flex flex-col gap-2 text-left sm:text-right">
                       <p className="text-xs text-slate-500">Delivery fee</p>
                       <p className="text-lg font-bold text-brand-700">{formatKes(p.fee)}</p>
+                      <button
+                        type="button"
+                        onClick={() => downloadParcelReceiptPDF({ parcel: p })}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100"
+                      >
+                        <Download className="h-3.5 w-3.5" /> Receipt
+                      </button>
                       {canDelete && (
                         <button
                           type="button"
                           disabled={deletingId === p.id}
                           onClick={() => handleDelete(p.id)}
-                          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white hover:text-red-600 disabled:opacity-50"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white hover:text-red-600 disabled:opacity-50"
                         >
                           {deletingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                           Delete

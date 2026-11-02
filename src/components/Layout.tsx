@@ -9,11 +9,12 @@ type HeaderProps = {
   onOpenBookings: () => void;
   onOpenAdmin: () => void;
   onOpenParcels: () => void;
+  onGoHome: () => void;
 };
 
 const navLinkClass = 'rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700';
 
-export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParcels }: HeaderProps) {
+export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParcels, onGoHome }: HeaderProps) {
   const { user } = useAuth();
   const canUseAdmin = Boolean(user && isAdminEmail(user.email) && user.emailVerified);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -26,7 +27,7 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParce
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/90 backdrop-blur-xl transition-shadow">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-4 sm:py-3.5">
-        <div className="flex min-w-0 items-center gap-2.5 transition-transform hover:scale-[1.02]">
+        <button type="button" onClick={onGoHome} className="flex min-w-0 items-center gap-2.5 transition-transform hover:scale-[1.02]">
           <span className="relative inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-lg shadow-brand-500/30">
             <Bus className="h-5 w-5" />
           </span>
@@ -34,7 +35,7 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParce
             <p className="text-base font-bold tracking-tight text-slate-900">South Rift Luxury Shuttle</p>
             <p className="hidden text-[11px] text-slate-500 sm:block">Luxury matatu booking · Kenya</p>
           </div>
-        </div>
+        </button>
 
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
           {canUseAdmin && (

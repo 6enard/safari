@@ -98,11 +98,16 @@ Deno.serve(async (req: Request) => {
 
       const { data: departure, error: depError } = await supabase
         .from('departures')
-        .select('id')
+        .select('id, departure_date, departure_time')
         .eq('id', departureId)
         .maybeSingle();
       if (depError) return jsonResponse({ error: depError.message }, 500);
       if (!departure) return jsonResponse({ error: 'This matatu trip is no longer available.' }, 404);
+
+      const depTime = departure.departure_time.length === 5 ? `${departure.departure_time}:00` : departure.departure_time;
+      if (new Date(`${departure.departure_date}T${depTime}`).getTime() < Date.now()) {
+        return jsonResponse({ error: 'This trip has already departed. Please choose a future trip.' }, 400);
+      }
 
       const now = new Date().toISOString();
       const rows = seats.map((seat: number) => ({
@@ -224,6 +229,20 @@ Deno.serve(async (req: Request) => {
       const fee = Math.round(baseFee + Math.ceil(weight) * 50);
       const trackingNumber = genTrackingNumber();
 
+      if (typeof departureId === 'string' && departureId) {
+        const { data: dep, error: depErr } = await supabase
+          .from('departures')
+          .select('departure_date, departure_time')
+          .eq('id', departureId)
+          .maybeSingle();
+        if (depErr) return jsonResponse({ error: depErr.message }, 500);
+        if (!dep) return jsonResponse({ error: 'This matatu trip is no longer available.' }, 404 );
+        const depTime = dep.departure_time.length === 5 ? `${dep.departure_time}:00` : dep.departure_time;
+        if (new Date(`${dep.departure_date}T${depTime}`).getTime() < Date.now()) {
+          return jsonResponse({ error: 'This trip has already departed. Please choose a future trip.' }, 400);
+        }
+      }
+
       const { data, error } = await supabase
         .from('parcels')
         .insert({
@@ -247,6 +266,20 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (error) return jsonResponse({ error: error.message }, 500);
+      return jsonResponse({ parcel: data });
+    }
+
+    if (action === 'getParcel') {
+      const { parcelId } = body;
+      if (typeof parcelId !== 'string') return jsonResponse({ error: 'Missing parcel.' }, 400);
+      const { data, error } = await supabase
+        .from('parcels')
+        .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time, vehicles(plate_number, vehicle_name))')
+        .eq('id', parcelId)
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) return jsonResponse({ error: error.message }, 500);
+      if (!data) return jsonResponse({ error: 'Parcel not found.' }, 404);
       return jsonResponse({ parcel: data });
     }
 
@@ -285,3 +318,4 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: message }, 500);
   }
 });
+

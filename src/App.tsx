@@ -5,6 +5,7 @@ import { Admin } from '@/components/Admin';
 import { MyBookings } from '@/components/MyBookings';
 import { BookingSteps } from '@/components/BookingSteps';
 import { SignInGate } from '@/components/SignInGate';
+import { HomeChoice } from '@/components/HomeChoice';
 import { Profile } from '@/components/Profile';
 import { RouteSelection } from '@/components/RouteSelection';
 import { DepartureList } from '@/components/DepartureList';
@@ -17,15 +18,15 @@ import { isAdminEmail } from '@/lib/adminApi';
 import type { Route, Departure } from '@/lib/db';
 
 type Step = 'routes' | 'departures' | 'seats' | 'payment' | 'receipt';
-type View = 'booking' | 'profile' | 'bookings' | 'admin' | 'parcels';
+type View = 'home' | 'booking' | 'profile' | 'bookings' | 'admin' | 'parcels';
 
 const STEP_INDEX: Record<Step, number> = { routes: 0, departures: 1, seats: 2, payment: 3, receipt: 4 };
 
-const VALID_VIEWS: View[] = ['booking', 'profile', 'bookings', 'admin', 'parcels'];
+const VALID_VIEWS: View[] = ['home', 'booking', 'profile', 'bookings', 'admin', 'parcels'];
 
 function viewFromHash(): View {
   const raw = window.location.hash.replace(/^#\/?/, '');
-  return VALID_VIEWS.includes(raw as View) ? (raw as View) : 'booking';
+  return VALID_VIEWS.includes(raw as View) ? (raw as View) : 'home';
 }
 
 function App() {
@@ -44,7 +45,7 @@ function App() {
   // Keep the URL hash in sync with the current view.
   function changeView(next: View) {
     setView(next);
-    if (next === 'booking') {
+    if (next === 'home' || next === 'booking') {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     } else {
       window.history.replaceState(null, '', `#/${next}`);
@@ -60,10 +61,10 @@ function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  // If the saved view is unavailable for this user, fall back to booking.
+  // If the saved view is unavailable for this user, fall back to home.
   useEffect(() => {
-    if (view !== 'booking' && (!user || (view === 'admin' && !canUseAdmin))) {
-      changeView('booking');
+    if (view !== 'home' && view !== 'booking' && (!user || (view === 'admin' && !canUseAdmin))) {
+      changeView('home');
     }
   }, [view, user, canUseAdmin]);
 
@@ -80,6 +81,11 @@ function App() {
     setPaymentRef('');
   }
 
+  function goHome() {
+    startOver();
+    changeView('home');
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 gradient-mesh">
       <Header
@@ -87,6 +93,7 @@ function App() {
         onOpenBookings={() => changeView('bookings')}
         onOpenAdmin={() => changeView('admin')}
         onOpenParcels={() => changeView('parcels')}
+        onGoHome={() => changeView('home')}
       />
       <main className="flex-1">
         {authLoading && (
@@ -95,10 +102,16 @@ function App() {
           </div>
         )}
         {!authLoading && !user && <SignInGate />}
-        {!authLoading && user && view === 'profile' && <Profile onBack={() => changeView('booking')} />}
-        {!authLoading && user && view === 'bookings' && <MyBookings onBack={() => changeView('booking')} />}
-        {!authLoading && canUseAdmin && view === 'admin' && <Admin onBack={() => changeView('booking')} />}
-        {!authLoading && user && view === 'parcels' && <Parcels onBack={() => changeView('booking')} />}
+        {!authLoading && user && view === 'profile' && <Profile onBack={() => changeView('home')} />}
+        {!authLoading && user && view === 'bookings' && <MyBookings onBack={() => changeView('home')} />}
+        {!authLoading && canUseAdmin && view === 'admin' && <Admin onBack={() => changeView('home')} />}
+        {!authLoading && user && view === 'parcels' && <Parcels onBack={() => changeView('home')} />}
+        {!authLoading && user && view === 'home' && (
+          <HomeChoice
+            onBookTrip={() => changeView('booking')}
+            onSendParcel={() => changeView('parcels')}
+          />
+        )}
         {!authLoading && user && view === 'booking' && (
           <>
             {step !== 'receipt' && <BookingSteps current={STEP_INDEX[step]} />}
@@ -145,7 +158,7 @@ function App() {
               />
             )}
             {step === 'receipt' && bookingIds.length > 0 && (
-              <Receipt paymentRef={paymentRef} onDone={startOver} />
+              <Receipt paymentRef={paymentRef} onDone={goHome} />
             )}
           </>
         )}

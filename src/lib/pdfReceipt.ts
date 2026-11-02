@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import type { Booking, Departure, Route } from '@/lib/db';
+import type { Booking, Departure, Route, Parcel } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
 
 export function downloadReceiptPDF(opts: {
@@ -109,4 +109,101 @@ export function downloadReceiptPDF(opts: {
   );
 
   doc.save(`receipt-${paymentRef}.pdf`);
+}
+
+export function downloadParcelReceiptPDF(opts: {
+  parcel: Parcel;
+}) {
+  const { parcel } = opts;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 40;
+  let y = 50;
+
+  // Header band
+  doc.setFillColor(5, 150, 105);
+  doc.rect(0, 0, pageWidth, 80, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text('South Rift Luxury Shuttle', margin, 35);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text('Parcel Receipt', margin, 55);
+  doc.setFontSize(10);
+  doc.text(formatDateTime(parcel.created_at), pageWidth - margin, 55, { align: 'right' });
+
+  y = 110;
+  doc.setTextColor(30, 41, 59);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Tracking No.', margin, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(13);
+  doc.text(parcel.tracking_number, margin + 120, y);
+
+  y += 10;
+  doc.setDrawColor(226, 232, 240);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 25;
+
+  const dep = parcel.departures;
+  const rows: [string, string][] = [
+    ['Pickup', parcel.pickup_location],
+    ['Drop-off', parcel.dropoff_location],
+    ['Sender', parcel.sender_name],
+    ['Sender phone', parcel.sender_phone],
+    ['Recipient', parcel.recipient_name],
+    ['Recipient phone', parcel.recipient_phone],
+    ['Contents', parcel.description],
+    ['Parcel type', parcel.parcel_type],
+    ['Weight', `${parcel.weight_kg} kg`],
+  ];
+  if (dep) {
+    rows.push(
+      ['Travel date', formatDate(dep.departure_date)],
+      ['Departure time', formatTime(dep.departure_time)],
+    );
+    if (dep.vehicles) {
+      rows.push(['Matatu', `${dep.vehicles.vehicle_name} (${dep.vehicles.plate_number})`]);
+    }
+  }
+
+  doc.setFontSize(11);
+  for (const [label, value] of rows) {
+    if (y > doc.internal.pageSize.getHeight() - 80) {
+      doc.addPage();
+      y = 50;
+    }
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 116, 139);
+    doc.text(label, margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(15, 23, 42);
+    doc.text(String(value), margin + 140, y, { maxWidth: pageWidth - margin * 2 - 140 });
+    y += 22;
+  }
+
+  y += 5;
+  doc.setDrawColor(226, 232, 240);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 25;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(5, 150, 105);
+  doc.text('Delivery fee', margin, y);
+  doc.text(formatKes(parcel.fee), pageWidth - margin, y, { align: 'right' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(148, 163, 184);
+  doc.text(
+    'Keep this receipt to track and collect your parcel. South Rift Luxury Shuttle.',
+    pageWidth / 2,
+    doc.internal.pageSize.getHeight() - 30,
+    { align: 'center' },
+  );
+
+  doc.save(`parcel-${parcel.tracking_number}.pdf`);
 }

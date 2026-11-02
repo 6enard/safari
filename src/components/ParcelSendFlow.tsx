@@ -4,12 +4,12 @@ import {
   Clock, Loader as Loader2, MapPin, Package, Phone, User as UserIcon, Weight, Tag,
   Wifi, Snowflake, Zap, Coffee, CircleCheck as CheckCircle2, X,
 } from 'lucide-react';
-import { db, type Departure, type ParcelType, type Route } from '@/lib/db';
+import { db, type Departure, type Parcel, type ParcelType, type Route } from '@/lib/db';
 import { useAuth } from '@/lib/authContext';
-import { formatKes, formatDate, formatTime, toISO } from '@/lib/format';
+import { formatKes, formatDate, formatTime, toISO, isDeparturePast } from '@/lib/format';
 
 type Props = {
-  onDone: () => void;
+  onDone: (parcel: Parcel) => void;
 };
 
 type Step = 'route' | 'date' | 'details';
@@ -121,7 +121,7 @@ export function ParcelSendFlow({ onDone }: Props) {
       try {
         const data = await db.listDeparturesForDate(selectedRoute.id, selectedDate);
         if (!active) return;
-        setDepartures(data);
+        setDepartures(data.filter((d) => !isDeparturePast(d.departure_date, d.departure_time)));
       } catch {
         if (active) setDepartures([]);
       } finally {
@@ -180,7 +180,7 @@ export function ParcelSendFlow({ onDone }: Props) {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await db.createParcel({
+      const result = await db.createParcel({
         routeId: selectedRoute.id,
         departureId: selectedDeparture.id,
         senderName: senderName.trim(),
@@ -193,7 +193,8 @@ export function ParcelSendFlow({ onDone }: Props) {
         weightKg: weight,
         parcelType,
       });
-      onDone();
+      const parcel = await db.getParcel(result.id);
+      onDone(parcel);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Could not send parcel.');
     } finally {

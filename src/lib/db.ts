@@ -237,6 +237,11 @@ export const db = {
     return parcel;
   },
 
+  async getParcel(parcelId: string): Promise<Parcel> {
+    const { parcel } = await callBookings<{ parcel: Parcel }>({ action: 'getParcel', parcelId }, true);
+    return parcel;
+  },
+
   async listMyParcels(): Promise<Parcel[]> {
     const { parcels } = await callBookings<{ parcels: Parcel[] }>({ action: 'myParcels' }, true);
     return parcels;

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowDown, Bus, Clock, Loader as Loader2, Wifi, Snowflake, Zap, Coffee, Calendar, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { db, type Route, type Departure } from '@/lib/db';
-import { formatTime, toISO } from '@/lib/format';
+import { formatTime, toISO, isDeparturePast } from '@/lib/format';
 
 type Props = {
   route: Route;
@@ -57,7 +57,7 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
       try {
         const data = await db.listDeparturesForDate(route.id, selectedDate);
         if (!active) return;
-        setDepartures(data);
+        setDepartures(data.filter((d) => !isDeparturePast(d.departure_date, d.departure_time)));
       } catch {
         if (!active) return;
         setDepartures([]);

@@ -32,7 +32,7 @@ const PARCEL_TYPE_LABELS: Record<string, string> = {
 };
 
 export function Parcels({ onBack }: Props) {
-  const [tab, setTab] = useState<Tab>('list');
+  const [tab, setTab] = useState<Tab>('send');
   const [parcels, setParcels] = useState<Parcel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,9 +120,9 @@ export function Parcels({ onBack }: Props) {
         <button
           type="button"
           role="tab"
-          aria-selected={tab === 'list'}
-          onClick={() => setTab('list')}
-          className={['inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all', tab === 'list' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'].join(' ')}
+          aria-selected={tab === 'send'}
+          onClick={() => setTab('send')}
+          className={['inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all', tab === 'send' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'].join(' ')}
         >
           <Plus className="h-4 w-4" /> Send new
         </button>

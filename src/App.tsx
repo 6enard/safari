@@ -13,16 +13,18 @@ import { SeatSelection } from '@/components/SeatSelection';
 import { Payment } from '@/components/Payment';
 import { Receipt } from '@/components/Receipt';
 import { Parcels } from '@/components/Parcels';
+import { Help } from '@/components/Help';
+import { DepartureReminders } from '@/components/DepartureReminders';
 import { useAuth } from '@/lib/authContext';
 import { isAdminEmail } from '@/lib/adminApi';
 import type { Route, Departure } from '@/lib/db';
 
 type Step = 'routes' | 'departures' | 'seats' | 'payment' | 'receipt';
-type View = 'home' | 'booking' | 'profile' | 'bookings' | 'admin' | 'parcels';
+type View = 'home' | 'booking' | 'profile' | 'bookings' | 'admin' | 'parcels' | 'help';
 
 const STEP_INDEX: Record<Step, number> = { routes: 0, departures: 1, seats: 2, payment: 3, receipt: 4 };
 
-const VALID_VIEWS: View[] = ['home', 'booking', 'profile', 'bookings', 'admin', 'parcels'];
+const VALID_VIEWS: View[] = ['home', 'booking', 'profile', 'bookings', 'admin', 'parcels', 'help'];
 
 function viewFromHash(): View {
   const raw = window.location.hash.replace(/^#\/?/, '');
@@ -93,6 +95,7 @@ function App() {
         onOpenBookings={() => changeView('bookings')}
         onOpenAdmin={() => changeView('admin')}
         onOpenParcels={() => changeView('parcels')}
+        onOpenHelp={() => changeView('help')}
         onGoHome={() => changeView('home')}
       />
       <main className="flex-1">
@@ -106,6 +109,13 @@ function App() {
         {!authLoading && user && view === 'bookings' && <MyBookings onBack={() => changeView('home')} />}
         {!authLoading && canUseAdmin && view === 'admin' && <Admin onBack={() => changeView('home')} />}
         {!authLoading && user && view === 'parcels' && <Parcels onBack={() => changeView('home')} />}
+        {!authLoading && user && view === 'help' && (
+          <Help
+            onBack={() => changeView('home')}
+            onBookTrip={() => changeView('booking')}
+            onSendParcel={() => changeView('parcels')}
+          />
+        )}
         {!authLoading && user && view === 'home' && (
           <HomeChoice
             onBookTrip={() => changeView('booking')}
@@ -164,6 +174,7 @@ function App() {
         )}
       </main>
       <Footer />
+      {user && <DepartureReminders />}
     </div>
   );
 }

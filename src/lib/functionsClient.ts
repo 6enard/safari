@@ -4,7 +4,7 @@ import { SUPABASE_URL } from '@/lib/supabaseEnv';
 const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
 export async function callFunction<T>(
-  name: 'admin' | 'bookings',
+  name: 'admin' | 'bookings' | 'profile',
   body: Record<string, unknown>,
   needsSignIn: boolean,
 ): Promise<T> {

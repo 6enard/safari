@@ -56,7 +56,11 @@ export function genPaymentRef(): string {
   return `MPX${ref}`;
 }
 
-export function isDeparturePast(dateStr: string, timeStr: string): boolean {
+export function departureDateTime(dateStr: string, timeStr: string): Date {
   const time = timeStr.length === 5 ? `${timeStr}:00` : timeStr;
-  return new Date(`${dateStr}T${time}`).getTime() < Date.now();
+  return new Date(`${dateStr}T${time}`);
+}
+
+export function isDeparturePast(dateStr: string, timeStr: string): boolean {
+  return departureDateTime(dateStr, timeStr).getTime() < Date.now();
 }

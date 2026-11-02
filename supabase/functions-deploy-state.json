@@ -8,6 +8,10 @@
     "bookings": {
       "hasChanged": false,
       "hash": "8c5102faa09d07a22af5d849aba5abc5b31812a08ef53644fde8f217c0918a69"
+    },
+    "profile": {
+      "hasChanged": false,
+      "hash": "e185dda0d62dd7bd1c92d327b57deef84ae6ae64746d9d987a011057f93b6ef6"
     }
   }
 }

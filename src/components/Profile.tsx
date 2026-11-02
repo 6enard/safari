@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { updateProfile } from 'firebase/auth';
-import { ArrowLeft, Mail, Calendar, User as UserIcon, Pencil, Loader as Loader2, Check, X } from 'lucide-react';
+import { ArrowLeft, Mail, Calendar, User as UserIcon, Pencil, Loader as Loader2, Check, X, Camera } from 'lucide-react';
 import { EmailVerification } from '@/components/EmailVerification';
 import { useAuth } from '@/lib/authContext';
 import { auth } from '@/lib/firebase';
+import { db } from '@/lib/db';
+import { imageFileToAvatarDataUrl } from '@/lib/avatarImage';
 import { formatDateTime } from '@/lib/format';
 
 type Props = {
@@ -20,6 +22,14 @@ export function Profile({ onBack }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    db.getAvatarUrl().then(setAvatarUrl).catch(() => setAvatarUrl(null));
+  }, []);
 
   if (!user) return null;
 
@@ -51,6 +61,26 @@ export function Profile({ onBack }: Props) {
     }
   }
 
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Please choose an image file (JPG, PNG or WebP).');
+      return;
+    }
+    setAvatarBusy(true);
+    setAvatarError(null);
+    try {
+      const dataUrl = await imageFileToAvatarDataUrl(file);
+      setAvatarUrl(await db.updateAvatar(dataUrl));
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'We could not update your photo. Please try again.');
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
   const details = [
     { icon: UserIcon, label: 'Full name', value: user.displayName ?? 'Not set' },
     { icon: Mail, label: 'Email', value: user.email ?? 'Not set' },
@@ -74,9 +104,19 @@ export function Profile({ onBack }: Props) {
       <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-6 text-white shadow-xl shadow-brand-900/20 animate-slide-up sm:p-8">
         <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
         <div className="relative flex items-center gap-5">
-          <span className="inline-flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-white/20 text-2xl font-bold ring-1 ring-white/30">
-            {initial}
-          </span>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={avatarBusy}
+            aria-label="Change profile photo"
+            className="group relative inline-flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/20 text-2xl font-bold ring-1 ring-white/30 transition-transform hover:scale-105 disabled:cursor-wait"
+          >
+            {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : initial}
+            <span className={`absolute inset-0 flex items-center justify-center bg-slate-900/50 transition-opacity ${avatarBusy ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'}`}>
+              {avatarBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+            </span>
+          </button>
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-brand-100">Your profile</p>
             <h1 className="truncate text-2xl font-bold sm:text-3xl">{displayName}</h1>
@@ -84,6 +124,12 @@ export function Profile({ onBack }: Props) {
           </div>
         </div>
       </div>
+
+      {avatarError && (
+        <div role="alert" className="mb-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 animate-fade-in">
+          {avatarError}
+        </div>
+      )}
 
       {savedNotice && (
         <div role="status" className="mb-6 inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm font-medium text-brand-700 animate-fade-in">

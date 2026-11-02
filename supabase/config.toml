@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.bookings]
 verify_jwt = false
+
+[functions.profile]
+verify_jwt = false

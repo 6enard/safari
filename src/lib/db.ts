@@ -281,6 +281,16 @@ export const db = {
     await callBookings<{ ok: true }>({ action: 'deleteParcel', parcelId }, true);
   },
 
+  async getAvatarUrl(): Promise<string | null> {
+    const { avatarUrl } = await callFunction<{ avatarUrl: string | null }>('profile', { action: 'getProfile' }, true);
+    return avatarUrl;
+  },
+
+  async updateAvatar(imageDataUrl: string): Promise<string> {
+    const { avatarUrl } = await callFunction<{ avatarUrl: string }>('profile', { action: 'updateAvatar', imageDataUrl }, true);
+    return avatarUrl;
+  },
+
   async listBookingsForUser(): Promise<BookingGroup[]> {
     const { bookings } = await callBookings<{ bookings: BookingRow[] }>({ action: 'mine' }, true);
     return groupBookings(bookings);

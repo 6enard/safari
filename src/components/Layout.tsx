@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bus, Menu, Package, ShieldCheck, Ticket, X } from 'lucide-react';
+import { Bus, CircleHelp, Menu, Package, ShieldCheck, Ticket, X } from 'lucide-react';
 import { AuthControls } from '@/components/AuthControls';
 import { useAuth } from '@/lib/authContext';
 import { isAdminEmail } from '@/lib/adminApi';
@@ -10,11 +10,12 @@ type HeaderProps = {
   onOpenAdmin: () => void;
   onOpenParcels: () => void;
   onGoHome: () => void;
+  onOpenHelp: () => void;
 };
 
 const navLinkClass = 'rounded-lg px-3 py-2 transition-all hover:bg-brand-50 hover:text-brand-700';
 
-export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParcels, onGoHome }: HeaderProps) {
+export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParcels, onGoHome, onOpenHelp }: HeaderProps) {
   const { user } = useAuth();
   const canUseAdmin = Boolean(user && isAdminEmail(user.email) && user.emailVerified);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -59,8 +60,7 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParce
             Parcels
           </button>
           <nav className="hidden items-center gap-1 text-sm font-medium text-slate-600 sm:flex">
-            <a href="#" className={navLinkClass}>Routes</a>
-            <a href="#" className={navLinkClass}>Help</a>
+            <button type="button" onClick={onOpenHelp} className={navLinkClass}>Help</button>
           </nav>
           <button
             type="button"
@@ -99,8 +99,9 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParce
             <button type="button" onClick={() => go(onOpenParcels)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-brand-50 hover:text-brand-700">
               <Package className="h-4 w-4 text-brand-600" /> Send a parcel
             </button>
-            <a href="#" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 transition-colors hover:bg-brand-50 hover:text-brand-700">Routes</a>
-            <a href="#" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-3 transition-colors hover:bg-brand-50 hover:text-brand-700">Help</a>
+            <button type="button" onClick={() => go(onOpenHelp)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-brand-50 hover:text-brand-700">
+              <CircleHelp className="h-4 w-4 text-brand-600" /> Help
+            </button>
           </nav>
         </div>
       )}

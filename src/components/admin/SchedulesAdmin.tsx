@@ -26,6 +26,7 @@ function emptyDraft(routeId: string): Draft {
 
 export function SchedulesAdmin({ data, onChanged }: Props) {
   const [routeFilter, setRouteFilter] = useState(data.routes[0]?.id ?? '');
+  const [scheduleMonth, setScheduleMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [editing, setEditing] = useState<AdminDeparture | 'new' | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft(routeFilter));
   const [saving, setSaving] = useState(false);
@@ -38,9 +39,9 @@ export function SchedulesAdmin({ data, onChanged }: Props) {
   const rows = useMemo(
     () =>
       data.departures
-        .filter((d) => d.route_id === routeFilter)
+        .filter((d) => d.route_id === routeFilter && d.departure_date.startsWith(scheduleMonth))
         .sort((a, b) => `${a.departure_date}${a.departure_time}`.localeCompare(`${b.departure_date}${b.departure_time}`)),
-    [data.departures, routeFilter],
+    [data.departures, routeFilter, scheduleMonth],
   );
 
   function openNew() {
@@ -112,15 +113,20 @@ export function SchedulesAdmin({ data, onChanged }: Props) {
   return (
     <section>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <Field label="Route">
-          <select className={`${inputClass} sm:w-80`} value={routeFilter} onChange={(e) => setRouteFilter(e.target.value)}>
-            {data.routes.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.origin} - {r.destination}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Route">
+            <select className={`${inputClass} sm:w-72`} value={routeFilter} onChange={(e) => setRouteFilter(e.target.value)}>
+              {data.routes.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.origin} - {r.destination}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Schedule month">
+            <input className={`${inputClass} sm:w-48`} type="month" value={scheduleMonth} onChange={(e) => setScheduleMonth(e.target.value)} />
+          </Field>
+        </div>
         <button
           type="button"
           onClick={openNew}
@@ -132,6 +138,13 @@ export function SchedulesAdmin({ data, onChanged }: Props) {
       </div>
 
       {pageError && <div className="mb-4"><FormError message={pageError} /></div>}
+
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-sm text-slate-600">
+          {rows.length} {rows.length === 1 ? 'trip' : 'trips'} scheduled for {new Date(`${scheduleMonth}-01T00:00:00`).toLocaleDateString('en-KE', { month: 'long', year: 'numeric' })}.
+        </p>
+        <p className="hidden text-xs text-slate-500 sm:block">Add another month whenever your timetable is ready.</p>
+      </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         {rows.length === 0 ? (

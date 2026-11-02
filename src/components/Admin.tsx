@@ -44,12 +44,13 @@ function AdminOverview({ data }: { data: AdminData | null }) {
   if (!data) return null;
   const today = new Date().toISOString().slice(0, 10);
   const activeBookings = data.bookings.filter((booking) => booking.status === 'confirmed').length;
-  const upcomingTrips = data.departures.filter((departure) => departure.departure_date >= today).length;
+  const currentMonth = today.slice(0, 7);
+  const monthlyTrips = data.departures.filter((departure) => departure.departure_date.startsWith(currentMonth)).length;
   const pendingParcels = data.parcels.filter((parcel) => parcel.status === 'pending').length;
   const unassignedVehicles = data.vehicles.filter((vehicle) => !vehicle.driver_id).length;
   const metrics = [
     { label: 'Active bookings', value: activeBookings, detail: `${data.bookings.length} total records`, icon: Ticket, tone: 'brand' },
-    { label: 'Upcoming trips', value: upcomingTrips, detail: `${data.departures.length} scheduled`, icon: Clock3, tone: 'sky' },
+    { label: 'Trips this month', value: monthlyTrips, detail: `${data.departures.length} scheduled overall`, icon: Clock3, tone: 'sky' },
     { label: 'Pending parcels', value: pendingParcels, detail: `${data.parcels.length} total parcels`, icon: Package, tone: 'amber' },
     { label: 'Fleet readiness', value: data.vehicles.length - unassignedVehicles, detail: `${unassignedVehicles} need a driver`, icon: Bus, tone: 'emerald' },
   ] as const;

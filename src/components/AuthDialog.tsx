@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  updateProfile,
+} from 'firebase/auth';
 import { X, Mail, Lock, User as UserIcon, Loader as Loader2 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/lib/authContext';
@@ -19,7 +25,23 @@ const ERROR_MESSAGES: Record<string, string> = {
   'auth/weak-password': 'Password must be at least 6 characters.',
   'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
   'auth/network-request-failed': 'Network problem. Check your connection and try again.',
+  'auth/popup-blocked': 'Your browser blocked the Google sign-in window. Allow pop-ups and try again.',
+  'auth/operation-not-allowed': 'Google sign-in is not enabled yet. Please use email instead.',
+  'auth/account-exists-with-different-credential': 'An account already exists with this email. Sign in with your email and password instead.',
 };
+
+const SILENT_ERROR_CODES = new Set(['auth/popup-closed-by-user', 'auth/cancelled-popup-request']);
+
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.4-1.7 4-5.5 4-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.5 12 2.5 6.8 2.5 2.5 6.8 2.5 12s4.3 9.5 9.5 9.5c5.5 0 9.1-3.9 9.1-9.3 0-.6-.1-1.1-.2-1.6H12z" />
+      <path fill="#34A853" d="M3.7 7.4l3.2 2.3C7.8 7.7 9.7 6.3 12 6.3c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.5 12 2.5c-3.6 0-6.7 2-8.3 4.9z" />
+      <path fill="#FBBC05" d="M12 21.5c2.5 0 4.6-.8 6.1-2.3l-2.8-2.3c-.8.5-1.8.9-3.3.9-3.8 0-5.2-2.5-5.5-3.9l-3.2 2.5c1.6 3.1 4.9 5.1 8.7 5.1z" />
+      <path fill="#4285F4" d="M21.1 12.2c0-.6-.1-1.1-.2-1.6H12v3.9h5.5c-.3 1.3-1 2.3-2.1 3l2.8 2.3c1.6-1.5 2.9-3.8 2.9-7.6z" />
+    </svg>
+  );
+}
 
 function errorMessage(err: unknown): string {
   const code = (err as { code?: string })?.code ?? '';
@@ -49,6 +71,19 @@ export function AuthDialog({ onClose }: Props) {
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
+  }
+
+  async function handleGoogleSignIn() {
+    setSubmitting(true);
+    setError(null);
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider());
+      onClose();
+    } catch (err) {
+      const code = (err as { code?: string })?.code ?? '';
+      if (!SILENT_ERROR_CODES.has(code)) setError(errorMessage(err));
+      setSubmitting(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -105,7 +140,24 @@ export function AuthDialog({ onClose }: Props) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 p-6">
+        <div className="space-y-4 p-6">
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={submitting}
+            className="inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <GoogleMark />
+            Continue with Google
+          </button>
+
+          <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-slate-400">
+            <span className="h-px flex-1 bg-slate-200" />
+            or with email
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="tablist">
             {(['signin', 'signup'] as const).map((m) => (
               <button
@@ -205,6 +257,7 @@ export function AuthDialog({ onClose }: Props) {
             )}
           </button>
         </form>
+        </div>
       </div>
     </div>
   );

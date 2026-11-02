@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Circle, User, Check, Loader as Loader2, X, Info } from 'lucide-react';
+import { ArrowLeft, Circle, User, Check, Loader as Loader2, X, Info, Clock } from 'lucide-react';
 import { db, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime } from '@/lib/format';
 
@@ -106,6 +106,12 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                 </p>
                 <p className="text-slate-500">{formatTime(departure.departure_time)}</p>
               </div>
+            </div>
+            <div className="mt-4 flex items-start gap-2.5 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
+              <Clock className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+              <p>
+                Please arrive at least <span className="font-semibold">30 minutes before departure</span> so boarding and seat checks run smoothly. Show your receipt to the conductor when you board.
+              </p>
             </div>
           </div>
 

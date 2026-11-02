@@ -43,18 +43,6 @@ const FAQS = [
     question: 'Will I be reminded before my trip leaves?',
     answer: 'Yes. While the app is open, you will get a reminder 30 minutes and 5 minutes before the departure time of each confirmed trip.',
   },
-  {
-    question: 'Can I change my profile photo?',
-    answer: 'Yes. Open your profile and tap your photo to choose a new one. Use a clear picture of yourself; it will be cropped to a square.',
-  },
-  {
-    question: 'Why can I not see the Admin console?',
-    answer: 'The Admin console is only for verified administrators. Verify your email address from your profile page to unlock it.',
-  },
-  {
-    question: 'Can I delete a parcel I sent?',
-    answer: 'Parcels that are still pending or have been cancelled can be deleted. Parcels already in transit or delivered cannot.',
-  },
 ];
 
 function StepList({ steps }: { steps: { title: string; text: string }[] }) {

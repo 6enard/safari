@@ -1,4 +1,5 @@
 import { Bus, Package, ArrowRight, Sparkles } from 'lucide-react';
+import { PassengerReviews } from '@/components/PassengerReviews';
 
 type Props = {
   onBookTrip: () => void;
@@ -75,6 +76,8 @@ export function HomeChoice({ onBookTrip, onSendParcel }: Props) {
           </span>
         </button>
       </div>
+
+      <PassengerReviews />
     </div>
   );
 }

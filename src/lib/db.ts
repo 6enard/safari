@@ -80,6 +80,15 @@ export type Parcel = {
   departures: { id: string; departure_date: string; departure_time: string; vehicles: { plate_number: string; vehicle_name: string } | null } | null;
 };
 
+export type PassengerReview = {
+  id: string;
+  passenger_name: string;
+  route_label: string;
+  rating: number;
+  comment: string;
+  travelled_on: string;
+};
+
 export type ParcelInput = {
   routeId: string | null;
   departureId: string | null;
@@ -254,6 +263,16 @@ export const db = {
   async listBookingsForUser(): Promise<BookingGroup[]> {
     const { bookings } = await callBookings<{ bookings: BookingRow[] }>({ action: 'mine' }, true);
     return groupBookings(bookings);
+  },
+
+  async listPassengerReviews(): Promise<PassengerReview[]> {
+    const { data, error } = await supabase
+      .from('passenger_reviews')
+      .select('id, passenger_name, route_label, rating, comment, travelled_on')
+      .order('travelled_on', { ascending: false })
+      .limit(12);
+    if (error) throw new Error(error.message);
+    return data as PassengerReview[];
   },
 
   async getBookingsByRef(paymentRef: string): Promise<{ bookings: Booking[]; departure: Departure; route: Route } | null> {

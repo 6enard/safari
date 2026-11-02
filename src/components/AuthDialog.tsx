@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   updateProfile,
@@ -10,7 +11,7 @@ import { X, Mail, Lock, User as UserIcon, Loader as Loader2 } from 'lucide-react
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/lib/authContext';
 
-type Mode = 'signin' | 'signup';
+type Mode = 'signin' | 'signup' | 'forgot';
 
 type Props = {
   onClose: () => void;
@@ -28,6 +29,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   'auth/popup-blocked': 'Your browser blocked the Google sign-in window. Allow pop-ups and try again.',
   'auth/operation-not-allowed': 'Google sign-in is not enabled yet. Please use email instead.',
   'auth/account-exists-with-different-credential': 'An account already exists with this email. Sign in with your email and password instead.',
+  'auth/user-not-found': 'We could not find an account with that email.',
 };
 
 const SILENT_ERROR_CODES = new Set(['auth/popup-closed-by-user', 'auth/cancelled-popup-request']);
@@ -59,6 +61,7 @@ export function AuthDialog({ onClose }: Props) {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -71,6 +74,7 @@ export function AuthDialog({ onClose }: Props) {
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
+    setSuccess(null);
   }
 
   async function handleGoogleSignIn() {
@@ -91,6 +95,12 @@ export function AuthDialog({ onClose }: Props) {
     setSubmitting(true);
     setError(null);
     try {
+      if (mode === 'forgot') {
+        await sendPasswordResetEmail(auth, email.trim());
+        setSuccess('If an account uses that email, we sent a password reset link. Check your inbox and spam folder.');
+        setSubmitting(false);
+        return;
+      }
       if (mode === 'signup') {
         const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
         if (name.trim()) {
@@ -108,6 +118,7 @@ export function AuthDialog({ onClose }: Props) {
   }
 
   const isSignup = mode === 'signup';
+  const isForgot = mode === 'forgot';
 
   return (
     <div
@@ -124,10 +135,10 @@ export function AuthDialog({ onClose }: Props) {
         <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">
           <div>
             <h2 id="auth-dialog-title" className="text-xl font-bold text-slate-900">
-              {isSignup ? 'Create your account' : 'Welcome back'}
+              {isForgot ? 'Reset your password' : isSignup ? 'Create your account' : 'Welcome back'}
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              {isSignup ? 'Sign up to keep your bookings in one place.' : 'Sign in to manage your bookings.'}
+              {isForgot ? 'Enter your email and we’ll send you a secure reset link.' : isSignup ? 'Sign up to keep your bookings in one place.' : 'Sign in to manage your bookings.'}
             </p>
           </div>
           <button
@@ -141,7 +152,7 @@ export function AuthDialog({ onClose }: Props) {
         </div>
 
         <div className="space-y-4 p-6">
-          <button
+          {!isForgot && <button
             type="button"
             onClick={handleGoogleSignIn}
             disabled={submitting}
@@ -149,16 +160,16 @@ export function AuthDialog({ onClose }: Props) {
           >
             <GoogleMark />
             Continue with Google
-          </button>
+          </button>}
 
-          <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-slate-400">
+          {!isForgot && <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-slate-400">
             <span className="h-px flex-1 bg-slate-200" />
             or with email
             <span className="h-px flex-1 bg-slate-200" />
-          </div>
+          </div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="tablist">
+          {!isForgot && <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="tablist">
             {(['signin', 'signup'] as const).map((m) => (
               <button
                 key={m}
@@ -174,7 +185,7 @@ export function AuthDialog({ onClose }: Props) {
                 {m === 'signin' ? 'Sign in' : 'Sign up'}
               </button>
             ))}
-          </div>
+          </div>}
 
           {isSignup && (
             <div>
@@ -215,7 +226,7 @@ export function AuthDialog({ onClose }: Props) {
             </div>
           </div>
 
-          <div>
+          {!isForgot && <div>
             <label htmlFor="auth-password" className="mb-1 block text-sm font-medium text-slate-700">
               Password
             </label>
@@ -233,12 +244,29 @@ export function AuthDialog({ onClose }: Props) {
                 className={inputClass}
               />
             </div>
-          </div>
+          </div>}
+
+          {!isSignup && !isForgot && (
+            <button type="button" onClick={() => switchMode('forgot')} className="text-sm font-semibold text-brand-700 transition-colors hover:text-brand-900">
+              Forgot your password?
+            </button>
+          )}
 
           {error && (
             <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 animate-fade-in">
               {error}
             </div>
+          )}
+          {success && (
+            <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 animate-fade-in">
+              {success}
+            </div>
+          )}
+
+          {isForgot && (
+            <button type="button" onClick={() => switchMode('signin')} className="w-full text-center text-sm font-semibold text-brand-700 transition-colors hover:text-brand-900">
+              Back to sign in
+            </button>
           )}
 
           <button
@@ -248,8 +276,10 @@ export function AuthDialog({ onClose }: Props) {
           >
             {submitting ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> {isSignup ? 'Creating account...' : 'Signing in...'}
+                <Loader2 className="h-4 w-4 animate-spin" /> {isForgot ? 'Sending reset link...' : isSignup ? 'Creating account...' : 'Signing in...'}
               </>
+            ) : isForgot ? (
+              'Send reset link'
             ) : isSignup ? (
               'Create account'
             ) : (

@@ -28,7 +28,7 @@ export function BookingSteps({ current }: Props) {
                     done
                       ? 'bg-brand-600 text-white'
                       : active
-                        ? 'bg-gradient-to-br from-brand-500 to-teal-600 text-white ring-4 ring-brand-100'
+                        ? 'bg-gradient-to-br from-brand-500 to-brand-700 text-white ring-4 ring-brand-100'
                         : 'bg-slate-200 text-slate-500',
                   ].join(' ')}
                 >

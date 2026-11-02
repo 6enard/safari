@@ -21,7 +21,7 @@ const STATUS_OPTIONS: { id: ParcelStatus; label: string }[] = [
 const STATUS_STYLES: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700 ring-amber-200',
   in_transit: 'bg-brand-50 text-brand-700 ring-brand-200',
-  delivered: 'bg-teal-50 text-teal-700 ring-teal-200',
+  delivered: 'bg-brand-50 text-brand-700 ring-brand-200',
   cancelled: 'bg-red-50 text-red-700 ring-red-200',
 };
 
@@ -292,7 +292,7 @@ function EditParcelDialog({ parcel, onClose, onSaved }: { parcel: AdminParcel; o
           <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50">
             Cancel
           </button>
-          <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-500/25 transition-all hover:brightness-110 disabled:opacity-60">
+          <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-500/25 transition-all hover:brightness-110 disabled:opacity-60">
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Save changes
           </button>

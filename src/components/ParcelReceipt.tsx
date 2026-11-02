@@ -34,7 +34,7 @@ export function ParcelReceipt({ parcel, onDone }: Props) {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-brand-900/10 animate-slide-up animate-delay-300">
-        <div className="relative overflow-hidden bg-gradient-to-r from-brand-600 to-teal-700 px-6 py-5 text-white">
+        <div className="relative overflow-hidden bg-gradient-to-r from-brand-600 to-brand-800 px-6 py-5 text-white">
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-xl" />
           <div className="relative flex items-center justify-between">
             <div>
@@ -90,7 +90,7 @@ export function ParcelReceipt({ parcel, onDone }: Props) {
             </div>
           )}
 
-          <div className="mt-6 rounded-xl bg-gradient-to-r from-brand-50 to-teal-50 p-4 ring-1 ring-brand-100">
+          <div className="mt-6 rounded-xl bg-gradient-to-r from-brand-50 to-brand-100 p-4 ring-1 ring-brand-100">
             <div className="flex items-center justify-between text-sm">
               <span className="font-semibold text-slate-700">Delivery fee</span>
               <span className="text-lg font-bold text-brand-700">{formatKes(parcel.fee)}</span>
@@ -112,7 +112,7 @@ export function ParcelReceipt({ parcel, onDone }: Props) {
             </button>
             <button
               onClick={onDone}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98]"
             >
               <Home className="h-4 w-4" /> Back to home
             </button>

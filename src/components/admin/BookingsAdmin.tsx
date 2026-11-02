@@ -472,7 +472,7 @@ export function BookingsAdmin({ data, onChanged }: Props) {
                         className={[
                           'relative flex aspect-square flex-col items-center justify-center rounded-lg text-xs font-semibold transition-all duration-200',
                           isSelected
-                            ? 'bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-md ring-2 ring-brand-300'
+                            ? 'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md ring-2 ring-brand-300'
                             : hasTrips
                               ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200 hover:bg-brand-100 hover:scale-105'
                               : isPast
@@ -496,7 +496,7 @@ export function BookingsAdmin({ data, onChanged }: Props) {
 
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-[10px] text-slate-500">
                   <span className="inline-flex items-center gap-1">
-                    <span className="h-3 w-3 rounded-md bg-gradient-to-br from-brand-500 to-teal-600" /> Selected
+                    <span className="h-3 w-3 rounded-md bg-gradient-to-br from-brand-500 to-brand-700" /> Selected
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <span className="h-3 w-3 rounded-md bg-brand-50 ring-1 ring-brand-200" /> Has trips
@@ -533,7 +533,7 @@ export function BookingsAdmin({ data, onChanged }: Props) {
                             anyActive ? 'bg-brand-50' : 'hover:bg-slate-50',
                           ].join(' ')}
                         >
-                          <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-sm">
+                          <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm">
                             <Clock className="h-4 w-4" />
                           </span>
                           <div className="min-w-0 flex-1">

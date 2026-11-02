@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const FIREBASE_API_KEY = 'AIzaSyB1QbZLaB7WbYlFwYaaA9Q7sbwisbuCBhA';
-const PAYMENT_METHODS = ['M-Pesa', 'Card', 'Cash'] as const;
+const PAYMENT_METHODS = ['M-Pesa'] as const;
 const SEAT_COUNT = 10;
 const PARCEL_TYPES = ['document', 'electronics', 'clothing', 'food', 'other'] as const;
 const PARCEL_TYPE_BASE_FEE: Record<string, number> = {

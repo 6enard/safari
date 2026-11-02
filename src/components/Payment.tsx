@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, CreditCard, Smartphone, Banknote, Loader as Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Smartphone, Loader as Loader2, ShieldCheck } from 'lucide-react';
 import { db, type Departure, type Route } from '@/lib/db';
 import { useAuth } from '@/lib/authContext';
 import { formatKes, formatDate, formatTime, genPaymentRef } from '@/lib/format';
@@ -12,19 +12,12 @@ type Props = {
   onPaid: (bookingIds: string[], paymentRef: string) => void;
 };
 
-type Method = 'M-Pesa' | 'Card' | 'Cash';
-
-const methods: { id: Method; icon: typeof Smartphone; desc: string }[] = [
-  { id: 'M-Pesa', icon: Smartphone, desc: 'Pay via M-Pesa till' },
-  { id: 'Card', icon: CreditCard, desc: 'Visa / Mastercard' },
-  { id: 'Cash', icon: Banknote, desc: 'Pay at the booking office' },
-];
+const PAYMENT_METHOD = 'M-Pesa' as const;
 
 export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
   const { user } = useAuth();
   const [name, setName] = useState(user?.displayName ?? '');
   const [phone, setPhone] = useState('');
-  const [method, setMethod] = useState<Method>('M-Pesa');
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +36,7 @@ export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
         seat_numbers: seats,
         passenger_name: name.trim(),
         passenger_phone: phone.trim(),
-        payment_method: method,
+        payment_method: PAYMENT_METHOD,
         payment_ref: paymentRef,
       });
       setProcessing(false);
@@ -113,36 +106,15 @@ export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
               Payment method
             </h2>
             <div className="space-y-3">
-              {methods.map((m) => {
-                const Icon = m.icon;
-                const active = method === m.id;
-                return (
-                  <button
-                    type="button"
-                    key={m.id}
-                    onClick={() => setMethod(m.id)}
-                    className={[
-                      'flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all duration-200',
-                      active
-                        ? 'border-brand-500 bg-gradient-to-r from-brand-50 to-teal-50 ring-1 ring-brand-300 shadow-sm'
-                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50',
-                    ].join(' ')}
-                  >
-                    <span
-                      className={[
-                        'inline-flex h-10 w-10 items-center justify-center rounded-lg transition-all',
-                        active ? 'bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-md shadow-brand-500/30' : 'bg-slate-100 text-slate-600',
-                      ].join(' ')}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <span>
-                      <span className="block text-sm font-semibold text-slate-800">{m.id}</span>
-                      <span className="block text-xs text-slate-500">{m.desc}</span>
-                    </span>
-                  </button>
-                );
-              })}
+              <div className="flex w-full items-center gap-3 rounded-xl border border-brand-500 bg-gradient-to-r from-brand-50 to-brand-100 p-4 ring-1 ring-brand-300 shadow-sm">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/30">
+                  <Smartphone className="h-5 w-5" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-slate-800">M-Pesa</span>
+                  <span className="block text-xs text-slate-500">Pay via M-Pesa till</span>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -155,7 +127,7 @@ export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
           <button
             type="submit"
             disabled={!valid || processing}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
           >
             {processing ? (
               <>
@@ -170,7 +142,7 @@ export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
         </div>
 
         <aside className="h-fit overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm md:sticky md:top-6 animate-slide-in-right animate-delay-300">
-          <div className="bg-gradient-to-r from-brand-50 to-teal-50 px-6 py-4">
+          <div className="bg-gradient-to-r from-brand-50 to-brand-100 px-6 py-4">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-brand-800">Summary</h3>
           </div>
           <dl className="space-y-3 p-6 text-sm">

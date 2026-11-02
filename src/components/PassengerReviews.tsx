@@ -95,7 +95,7 @@ export function PassengerReviews() {
             <Stars rating={review.rating} label={`${review.rating} out of 5 stars`} />
             <p className="mt-4 flex-1 text-sm leading-relaxed text-slate-700">&ldquo;{review.comment}&rdquo;</p>
             <div className="mt-5 flex items-center gap-3 border-t border-slate-100 pt-4">
-              <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-teal-600 text-sm font-bold text-white">
+              <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-sm font-bold text-white">
                 {initials(review.passenger_name)}
               </span>
               <div className="min-w-0">

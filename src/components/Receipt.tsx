@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Clock, Calendar, Bus, Armchair, Phone, Smartphone, CreditCard, Banknote, Loader as Loader2 } from 'lucide-react';
+import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Clock, Calendar, Bus, Armchair, Phone, Smartphone, Loader as Loader2 } from 'lucide-react';
 import { db, type Booking, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
 import { downloadReceiptPDF } from '@/lib/pdfReceipt';
@@ -7,12 +7,6 @@ import { downloadReceiptPDF } from '@/lib/pdfReceipt';
 type Props = {
   paymentRef: string;
   onDone: () => void;
-};
-
-const methodIcon: Record<string, typeof Smartphone> = {
-  'M-Pesa': Smartphone,
-  Card: CreditCard,
-  Cash: Banknote,
 };
 
 export function Receipt({ paymentRef, onDone }: Props) {
@@ -61,7 +55,7 @@ export function Receipt({ paymentRef, onDone }: Props) {
         <p className="text-red-600">{error ?? 'Could not load your receipt.'}</p>
         <button
           onClick={onDone}
-          className="mt-4 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/25"
+          className="mt-4 rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/25"
         >
           Back to home
         </button>
@@ -69,7 +63,6 @@ export function Receipt({ paymentRef, onDone }: Props) {
     );
   }
 
-  const MethodIcon = methodIcon[bookings[0].payment_method] ?? Smartphone;
   const activeBookings = bookings.filter((b) => b.status !== 'cancelled');
   const totalFare = departure.fare * activeBookings.length;
 
@@ -87,7 +80,7 @@ export function Receipt({ paymentRef, onDone }: Props) {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-brand-900/10 animate-slide-up animate-delay-300">
-        <div className="relative overflow-hidden bg-gradient-to-r from-brand-600 to-teal-700 px-6 py-5 text-white">
+        <div className="relative overflow-hidden bg-gradient-to-r from-brand-600 to-brand-800 px-6 py-5 text-white">
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-xl" />
           <div className="relative flex items-center justify-between">
             <div>
@@ -124,7 +117,7 @@ export function Receipt({ paymentRef, onDone }: Props) {
                 ))}
               </span>
             </Field>
-            <Field icon={<MethodIcon className="h-4 w-4" />} label="Payment">
+            <Field icon={<Smartphone className="h-4 w-4" />} label="Payment">
               {bookings[0].payment_method}
             </Field>
             <Field icon={<MapPin className="h-4 w-4" />} label="Passenger">
@@ -135,7 +128,7 @@ export function Receipt({ paymentRef, onDone }: Props) {
             </Field>
           </div>
 
-          <div className="mt-6 rounded-xl bg-gradient-to-r from-brand-50 to-teal-50 p-4 ring-1 ring-brand-100">
+          <div className="mt-6 rounded-xl bg-gradient-to-r from-brand-50 to-brand-100 p-4 ring-1 ring-brand-100">
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-600">
                 {bookings.length} {bookings.length === 1 ? 'seat' : 'seats'} × {formatKes(departure.fare)}
@@ -162,7 +155,7 @@ export function Receipt({ paymentRef, onDone }: Props) {
             </button>
             <button
               onClick={onDone}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98]"
             >
               <Home className="h-4 w-4" /> Book another trip
             </button>

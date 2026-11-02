@@ -223,7 +223,7 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
 
         {/* Summary */}
         <aside className="h-fit overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm animate-slide-in-right lg:sticky lg:top-6">
-          <div className="bg-gradient-to-r from-brand-50 to-teal-50 px-6 py-4">
+          <div className="bg-gradient-to-r from-brand-50 to-brand-100 px-6 py-4">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-brand-800">
               Your selection
               {selected.length > 0 && (
@@ -240,7 +240,7 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                   {selected.map((s) => (
                     <span
                       key={s}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-teal-600 text-sm font-bold text-white shadow-md shadow-brand-500/30 animate-pop-in"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-sm font-bold text-white shadow-md shadow-brand-500/30 animate-pop-in"
                     >
                       {s}
                     </span>
@@ -276,7 +276,7 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
                 </dl>
                 <button
                   onClick={() => onContinue(selected)}
-                  className="mt-5 w-full rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="mt-5 w-full rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:shadow-xl hover:shadow-brand-500/40 hover:brightness-110 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   Continue to payment
                 </button>
@@ -303,7 +303,7 @@ export function SeatSelection({ route, departure, onBack, onContinue }: Props) {
             <button
               type="button"
               onClick={() => onContinue(selected)}
-              className="flex-shrink-0 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:brightness-110 active:scale-[0.98]"
+              className="flex-shrink-0 rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:brightness-110 active:scale-[0.98]"
             >
               Continue
             </button>
@@ -350,7 +350,7 @@ function SeatButton({
         </>
       ) : selected ? (
         <>
-          <span className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand-500 to-teal-600" />
+          <span className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700" />
           <SeatSVG className="relative h-10 w-10" />
           <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-brand-600 shadow-sm">
             <Check className="h-3 w-3" strokeWidth={3} />

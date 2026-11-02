@@ -125,7 +125,7 @@ export function SchedulesAdmin({ data, onChanged }: Props) {
           type="button"
           onClick={openNew}
           disabled={data.routes.length === 0 || data.vehicles.length === 0}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-500/25 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-500/25 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
         >
           <Plus className="h-4 w-4" /> Add trip
         </button>

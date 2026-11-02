@@ -19,7 +19,7 @@ type Tab = 'list' | 'send';
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Package; color: string; bg: string; ring: string }> = {
   pending: { label: 'Pending', icon: PackageOpen, color: 'text-amber-700', bg: 'bg-amber-50', ring: 'ring-amber-200' },
   in_transit: { label: 'In transit', icon: Truck, color: 'text-brand-700', bg: 'bg-brand-50', ring: 'ring-brand-200' },
-  delivered: { label: 'Delivered', icon: PackageCheck, color: 'text-teal-700', bg: 'bg-teal-50', ring: 'ring-teal-200' },
+  delivered: { label: 'Delivered', icon: PackageCheck, color: 'text-brand-700', bg: 'bg-brand-50', ring: 'ring-brand-200' },
   cancelled: { label: 'Cancelled', icon: X, color: 'text-red-700', bg: 'bg-red-50', ring: 'ring-red-200' },
 };
 
@@ -159,7 +159,7 @@ export function Parcels({ onBack }: Props) {
             <button
               type="button"
               onClick={() => setTab('send')}
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-500/25 transition-all hover:brightness-110"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-500/25 transition-all hover:brightness-110"
             >
               <Plus className="h-4 w-4" /> Send a parcel
             </button>

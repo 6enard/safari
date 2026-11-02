@@ -67,7 +67,7 @@ export function AuthControls({ onOpenProfile, onOpenBookings, onOpenParcels }: P
         aria-expanded={menuOpen}
         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-brand-300 hover:shadow-md"
       >
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-teal-600 text-xs font-bold text-white">
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-xs font-bold text-white">
           {initial}
         </span>
         <span className="hidden max-w-[120px] truncate md:inline">{label}</span>

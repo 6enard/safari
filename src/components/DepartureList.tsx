@@ -123,9 +123,9 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> All routes
       </button>
 
-      <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-teal-700 p-6 text-white shadow-xl shadow-brand-900/20 animate-slide-up">
+      <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-6 text-white shadow-xl shadow-brand-900/20 animate-slide-up">
         <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-10 left-10 h-32 w-32 rounded-full bg-cyan-300/15 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-10 left-10 h-32 w-32 rounded-full bg-brand-300/15 blur-2xl" />
         <div className="relative flex items-center gap-2 text-lg font-bold sm:text-2xl">
           <span>{route.origin}</span>
           <ArrowLeft className="h-5 w-5 rotate-180 opacity-70" />
@@ -138,7 +138,7 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
 
       {/* Calendar */}
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm animate-slide-up animate-delay-100">
-        <div className="flex items-center gap-2 border-b border-slate-100 bg-gradient-to-r from-brand-50 to-teal-50 px-6 py-4 text-sm font-semibold uppercase tracking-wide text-brand-800">
+        <div className="flex items-center gap-2 border-b border-slate-100 bg-gradient-to-r from-brand-50 to-brand-100 px-6 py-4 text-sm font-semibold uppercase tracking-wide text-brand-800">
           <Calendar className="h-4 w-4" /> Choose your travel date
         </div>
 
@@ -191,7 +191,7 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
                     className={[
                       'relative aspect-square rounded-xl text-sm font-semibold transition-all duration-200',
                       isSelected
-                        ? 'bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-md ring-2 ring-brand-300 scale-105'
+                        ? 'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md ring-2 ring-brand-300 scale-105'
                         : disabled
                           ? 'cursor-not-allowed text-slate-300'
                           : 'text-slate-700 ring-1 ring-slate-200 hover:bg-brand-50 hover:text-brand-700 hover:ring-brand-300 hover:scale-105 active:scale-95',
@@ -241,7 +241,7 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
 
             <div className="mt-5 flex items-center justify-center gap-5 text-xs text-slate-500">
               <span className="inline-flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded-md bg-gradient-to-br from-brand-500 to-teal-600" /> Selected
+                <span className="h-3 w-3 rounded-md bg-gradient-to-br from-brand-500 to-brand-700" /> Selected
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-3 w-3 rounded-md ring-1 ring-slate-200" /> Available
@@ -278,10 +278,10 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
                   style={{ animationDelay: `${idx * 0.06}s` }}
                   className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg animate-fade-in"
                 >
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-50/0 to-teal-50/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-50/0 to-brand-100/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   <div className="relative flex items-start justify-between">
                     <div className="inline-flex items-center gap-2">
-                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-brand-100 to-teal-100 text-brand-700 transition-transform group-hover:scale-110">
+                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-brand-100 to-brand-200 text-brand-700 transition-transform group-hover:scale-110">
                         <Bus className="h-5 w-5" />
                       </span>
                       <span className="font-mono text-base font-bold tracking-wide text-slate-900">

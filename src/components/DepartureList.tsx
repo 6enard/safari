@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowDown, Bus, Clock, Loader as Loader2, Wifi, Snowflake, Zap, Coffee, Calendar, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { db, type Route, type Departure } from '@/lib/db';
 import { formatTime, toISO, isDeparturePast } from '@/lib/format';
-import { PickupPointsPanel } from '@/components/PickupPointsPanel';
 
 type Props = {
   route: Route;
@@ -136,8 +135,6 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
           {route.distance_km} km · approx {route.duration_hours}h travel
         </p>
       </div>
-
-      <PickupPointsPanel routeId={route.id} />
 
       {/* Calendar */}
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm animate-slide-up animate-delay-100">

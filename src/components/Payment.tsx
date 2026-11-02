@@ -3,6 +3,7 @@ import { ArrowLeft, Smartphone, Loader as Loader2, ShieldCheck } from 'lucide-re
 import { db, type Departure, type Route } from '@/lib/db';
 import { useAuth } from '@/lib/authContext';
 import { formatKes, formatDate, formatTime, genPaymentRef } from '@/lib/format';
+import { PickupPointsPanel } from '@/components/PickupPointsPanel';
 
 type Props = {
   route: Route;
@@ -192,6 +193,9 @@ export function Payment({ route, departure, seats, onBack, onPaid }: Props) {
               <dd className="font-bold text-brand-700">{formatKes(totalFare)}</dd>
             </div>
           </dl>
+          <div className="border-t border-slate-100 p-4">
+            <PickupPointsPanel routeId={route.id} />
+          </div>
         </aside>
       </form>
     </div>

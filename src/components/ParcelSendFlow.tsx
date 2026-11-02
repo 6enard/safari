@@ -7,6 +7,7 @@ import {
 import { db, type Departure, type Parcel, type ParcelType, type Route } from '@/lib/db';
 import { useAuth } from '@/lib/authContext';
 import { formatKes, formatDate, formatTime, toISO, isDeparturePast } from '@/lib/format';
+import { PickupPointsPanel } from '@/components/PickupPointsPanel';
 
 type Props = {
   onDone: (parcel: Parcel) => void;
@@ -598,6 +599,8 @@ export function ParcelSendFlow({ onDone }: Props) {
               </div>
             </dl>
           </div>
+
+          <PickupPointsPanel routeId={selectedRoute.id} />
 
           {submitError && (
             <div role="alert" className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 animate-fade-in">

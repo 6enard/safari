@@ -1,4 +1,4 @@
-import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Package, Truck, Weight, Tag, User as UserIcon, Phone, Calendar, Clock, Bus } from 'lucide-react';
+import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Package, Weight, Tag, User as UserIcon, Phone, Calendar, Clock, Bus } from 'lucide-react';
 import type { Parcel } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
 import { downloadParcelReceiptPDF } from '@/lib/pdfReceipt';

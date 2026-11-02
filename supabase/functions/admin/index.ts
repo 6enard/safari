@@ -123,6 +123,50 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ ok: true });
     }
 
+    if (action === 'updateBooking') {
+      const { bookingId, passengerName, passengerPhone, seatNumber } = body;
+      if (typeof bookingId !== 'string') return jsonResponse({ error: 'Missing booking id.' }, 400);
+      if (typeof passengerName !== 'string' || passengerName.trim().length < 2 || passengerName.trim().length > 100) {
+        return jsonResponse({ error: 'Enter a passenger name between 2 and 100 characters.' }, 400);
+      }
+      if (typeof passengerPhone !== 'string' || passengerPhone.trim().length < 10 || passengerPhone.trim().length > 20) {
+        return jsonResponse({ error: 'Enter a valid phone number.' }, 400);
+      }
+      if (!Number.isInteger(seatNumber) || seatNumber < 1 || seatNumber > 10) {
+        return jsonResponse({ error: 'Choose a valid seat from 1 to 10.' }, 400);
+      }
+
+      const { data: existing, error: existingError } = await supabase
+        .from('bookings')
+        .select('id, departure_id, seat_number, status')
+        .eq('id', bookingId)
+        .maybeSingle();
+      if (existingError) return jsonResponse({ error: existingError.message }, 500);
+      if (!existing) return jsonResponse({ error: 'Booking not found.' }, 404);
+      if (existing.status !== 'confirmed') return jsonResponse({ error: 'Only confirmed bookings can be edited.' }, 400);
+
+      if (seatNumber !== existing.seat_number) {
+        const { data: seatTaken, error: seatError } = await supabase
+          .from('bookings')
+          .select('id')
+          .eq('departure_id', existing.departure_id)
+          .eq('seat_number', seatNumber)
+          .eq('status', 'confirmed')
+          .neq('id', bookingId)
+          .maybeSingle();
+        if (seatError) return jsonResponse({ error: seatError.message }, 500);
+        if (seatTaken) return jsonResponse({ error: 'That seat is already assigned on this trip.' }, 409);
+      }
+
+      const { error } = await supabase
+        .from('bookings')
+        .update({ passenger_name: passengerName.trim(), passenger_phone: passengerPhone.trim(), seat_number: seatNumber })
+        .eq('id', bookingId)
+        .eq('status', 'confirmed');
+      if (error) return jsonResponse({ error: error.message }, 400);
+      return jsonResponse({ ok: true });
+    }
+
     if (action === 'updateParcel') {
       const { parcelId, status: pStatus, adminNotes, fee } = body;
       if (typeof parcelId !== 'string') return jsonResponse({ error: 'Missing parcel.' }, 400);

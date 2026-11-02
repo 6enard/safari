@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Package, Search, Trash2, Loader as Loader2, MapPin, Phone, User as UserIcon, Weight, Tag, Route as RouteIcon, X, Calendar, Clock } from 'lucide-react';
+import { Package, Search, Loader as Loader2, MapPin, Phone, User as UserIcon, Weight, Tag, Route as RouteIcon, X, Calendar } from 'lucide-react';
 import type { AdminData, AdminParcel } from '@/lib/adminApi';
 import type { ParcelStatus } from '@/lib/db';
 import { adminApi, errorText } from '@/lib/adminApi';

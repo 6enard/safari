@@ -1,5 +1,5 @@
 import { callFunction } from '@/lib/functionsClient';
-import type { Route, Departure, RefundStatus, ParcelStatus, PickupPoint } from '@/lib/db';
+import type { Route, RefundStatus, ParcelStatus, PickupPoint } from '@/lib/db';
 
 export const ADMIN_EMAIL = '6enard@gmail.com';
 
@@ -101,6 +101,8 @@ export const adminApi = {
     callFunction<{ ok: true }>('admin', { action: 'delete', table, id }, true),
   cancelBooking: (bookingId: string, reason: string, refundStatus: RefundStatus) =>
     callFunction<{ ok: true }>('admin', { action: 'cancelBooking', bookingId, reason, refundStatus }, true),
+  updateBooking: (bookingId: string, update: { passengerName: string; passengerPhone: string; seatNumber: number }) =>
+    callFunction<{ ok: true }>('admin', { action: 'updateBooking', bookingId, ...update }, true),
   uploadDriverPhoto: (driverId: string, contentType: string, data: string) =>
     callFunction<{ photo_url: string }>('admin', { action: 'uploadDriverPhoto', driverId, contentType, data }, true),
   updateParcel: (parcelId: string, update: { status?: ParcelStatus; adminNotes?: string; fee?: number }) =>

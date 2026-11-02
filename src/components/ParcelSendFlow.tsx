@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ArrowLeft, ArrowRight, ArrowDown, Bus, Calendar, ChevronLeft, ChevronRight,
-  Clock, Loader as Loader2, MapPin, Package, Phone, User as UserIcon, Weight, Tag,
+  ArrowLeft, ArrowRight, Bus, Calendar, ChevronLeft, ChevronRight,
+  Clock, Loader as Loader2, MapPin, Package,
   Wifi, Snowflake, Zap, Coffee, CircleCheck as CheckCircle2, X,
 } from 'lucide-react';
 import { db, type Departure, type Parcel, type ParcelType, type Route } from '@/lib/db';

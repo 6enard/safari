@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Armchair, Bus, Calendar, Clock, MapPin, Phone, User as UserIcon, X, Info, Search, Ticket, Download, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Armchair, Bus, Calendar, Clock, MapPin, Pencil, Phone, User as UserIcon, X, Info, Search, Ticket, Download, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { AdminBooking, AdminData } from '@/lib/adminApi';
 import { inputClass } from '@/components/admin/AdminShared';
 import { CancelBookingDialog } from '@/components/admin/CancelBookingDialog';
+import { EditBookingDialog } from '@/components/admin/EditBookingDialog';
 import { formatDate, formatKes, formatTime, formatDateTime, refundStatusLabel, toISO } from '@/lib/format';
 
 type Props = {
@@ -56,6 +57,7 @@ export function BookingsAdmin({ data, onChanged }: Props) {
   const [passengerSearch, setPassengerSearch] = useState('');
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [cancelTarget, setCancelTarget] = useState<AdminBooking | null>(null);
+  const [editTarget, setEditTarget] = useState<AdminBooking | null>(null);
 
   const routeById = useMemo(() => new Map(data.routes.map((r) => [r.id, r])), [data.routes]);
   const vehicleById = useMemo(() => new Map(data.vehicles.map((v) => [v.id, v])), [data.vehicles]);
@@ -311,6 +313,12 @@ export function BookingsAdmin({ data, onChanged }: Props) {
     await onChanged();
   }
 
+  async function handleBookingSaved() {
+    setEditTarget(null);
+    setSelectedSeat(null);
+    await onChanged();
+  }
+
   if (data.departures.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center text-slate-500">
@@ -396,14 +404,23 @@ export function BookingsAdmin({ data, onChanged }: Props) {
                     <div className="flex items-center gap-2 sm:flex-shrink-0">
                       <span className="font-mono text-xs text-slate-500">{b.payment_ref}</span>
                       {!cancelled && (
-                        <button
-                          type="button"
-                          onClick={() => setCancelTarget(b)}
-                          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
-                        >
-                          <Ban className="h-3.5 w-3.5" />
-                          Cancel
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setEditTarget(b)}
+                            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+                          >
+                            <Pencil className="h-3.5 w-3.5" /> Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCancelTarget(b)}
+                            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                          >
+                            <Ban className="h-3.5 w-3.5" />
+                            Cancel
+                          </button>
+                        </>
                       )}
                     </div>
                   </li>
@@ -750,13 +767,20 @@ export function BookingsAdmin({ data, onChanged }: Props) {
                       value={formatKes(current.dep.fare)}
                     />
                   </dl>
-                  <div className="border-t border-slate-100 p-4">
+                  <div className="flex flex-col gap-2 border-t border-slate-100 p-4 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => setEditTarget(selectedBooking)}
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-700 transition-all hover:bg-brand-100"
+                    >
+                      <Pencil className="h-4 w-4" /> Edit booking
+                    </button>
                     <button
                       type="button"
                       onClick={() => setCancelTarget(selectedBooking)}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-50"
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-50"
                     >
-                      <Ban className="h-4 w-4" /> Cancel this booking
+                      <Ban className="h-4 w-4" /> Cancel booking
                     </button>
                   </div>
                 </div>
@@ -780,6 +804,14 @@ export function BookingsAdmin({ data, onChanged }: Props) {
           booking={cancelTarget}
           onClose={() => setCancelTarget(null)}
           onCancelled={handleCancelled}
+        />
+      )}
+      {editTarget && (
+        <EditBookingDialog
+          booking={editTarget}
+          occupiedSeats={new Set(bookingsByDeparture.get(editTarget.departure_id)?.keys() ?? [])}
+          onClose={() => setEditTarget(null)}
+          onSaved={handleBookingSaved}
         />
       )}
     </section>

@@ -120,7 +120,7 @@ export function RouteSelection({ onSelectRoute }: Props) {
                 <dd className="mt-0.5 font-semibold text-slate-800">{route.duration_hours}h</dd>
               </div>
               <div>
-                <dt className="flex items-center gap-1 text-xs text-slate-500"><MapPin className="h-3 w-3" /> From</dt>
+                <dt className="flex items-center gap-1 text-xs text-slate-500"><MapPin className="h-3 w-3" /> Fare</dt>
                 <dd className="mt-0.5 font-bold text-brand-700">{formatKes(route.base_fare)}</dd>
               </div>
             </dl>

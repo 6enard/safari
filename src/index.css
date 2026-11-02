@@ -37,13 +37,13 @@
 
   .gradient-mesh {
     background-image:
-      radial-gradient(at 20% 20%, rgba(96, 153, 102, 0.18) 0px, transparent 50%),
-      radial-gradient(at 80% 0%, rgba(157, 192, 139, 0.22) 0px, transparent 50%),
-      radial-gradient(at 0% 80%, rgba(64, 81, 59, 0.1) 0px, transparent 50%);
+      radial-gradient(at 20% 20%, rgba(63, 114, 175, 0.16) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(219, 226, 239, 0.9) 0px, transparent 50%),
+      radial-gradient(at 0% 80%, rgba(17, 45, 78, 0.08) 0px, transparent 50%);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #609966, #40513B);
+    background: linear-gradient(135deg, #3F72AF, #112D4E);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;

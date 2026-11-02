@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Ban, Bus, Calendar, Loader as Loader2, Package, Route as RouteIcon, ShieldCheck, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, Ban, Bus, Calendar, Loader as Loader2, MapPin, Package, Route as RouteIcon, ShieldCheck, Ticket, Users } from 'lucide-react';
 import { adminApi, type AdminData } from '@/lib/adminApi';
 import { RoutesAdmin } from '@/components/admin/RoutesAdmin';
 import { SchedulesAdmin } from '@/components/admin/SchedulesAdmin';
@@ -8,14 +8,15 @@ import { DriversAdmin } from '@/components/admin/DriversAdmin';
 import { BookingsAdmin } from '@/components/admin/BookingsAdmin';
 import { CancellationsAdmin } from '@/components/admin/CancellationsAdmin';
 import { ParcelsAdmin } from '@/components/admin/ParcelsAdmin';
+import { PickupPointsAdmin } from '@/components/admin/PickupPointsAdmin';
 
 type Props = {
   onBack: () => void;
 };
 
-type Tab = 'routes' | 'schedules' | 'vehicles' | 'drivers' | 'bookings' | 'cancellations' | 'parcels';
+type Tab = 'routes' | 'schedules' | 'pickup' | 'vehicles' | 'drivers' | 'bookings' | 'cancellations' | 'parcels';
 
-const VALID_TABS: Tab[] = ['routes', 'schedules', 'vehicles', 'drivers', 'bookings', 'cancellations', 'parcels'];
+const VALID_TABS: Tab[] = ['routes', 'schedules', 'pickup', 'vehicles', 'drivers', 'bookings', 'cancellations', 'parcels'];
 
 function tabFromHash(): Tab {
   const hash = window.location.hash;
@@ -31,6 +32,7 @@ function adminHashWithTab(tab: Tab): string {
 const TABS: { id: Tab; label: string; icon: typeof RouteIcon }[] = [
   { id: 'routes', label: 'Routes', icon: RouteIcon },
   { id: 'schedules', label: 'Schedules & prices', icon: Calendar },
+  { id: 'pickup', label: 'Pickup points', icon: MapPin },
   { id: 'vehicles', label: 'Matatus', icon: Bus },
   { id: 'drivers', label: 'Drivers', icon: Users },
   { id: 'bookings', label: 'Bookings', icon: Ticket },
@@ -89,7 +91,7 @@ export function Admin({ onBack }: Props) {
             <ShieldCheck className="h-3.5 w-3.5" /> Admin
           </span>
           <h1 className="mt-3 text-3xl font-bold text-slate-900">Admin console</h1>
-          <p className="mt-1 text-slate-600">Manage routes, prices, schedules, matatus and drivers.</p>
+          <p className="mt-1 text-slate-600">Manage routes, prices, pickup points, schedules, matatus and drivers.</p>
         </div>
       </div>
 
@@ -141,6 +143,7 @@ export function Admin({ onBack }: Props) {
 
           {tab === 'routes' && <RoutesAdmin data={data} onChanged={load} />}
           {tab === 'schedules' && <SchedulesAdmin data={data} onChanged={load} />}
+          {tab === 'pickup' && <PickupPointsAdmin data={data} onChanged={load} />}
           {tab === 'vehicles' && <VehiclesAdmin data={data} onChanged={load} />}
           {tab === 'drivers' && <DriversAdmin data={data} onChanged={load} />}
           {tab === 'bookings' && <BookingsAdmin data={data} onChanged={load} />}

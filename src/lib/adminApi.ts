@@ -1,5 +1,5 @@
 import { callFunction } from '@/lib/functionsClient';
-import type { Route, Departure, RefundStatus, ParcelStatus } from '@/lib/db';
+import type { Route, Departure, RefundStatus, ParcelStatus, PickupPoint } from '@/lib/db';
 
 export const ADMIN_EMAIL = '6enard@gmail.com';
 
@@ -82,11 +82,12 @@ export type AdminData = {
   departures: AdminDeparture[];
   vehicles: AdminVehicle[];
   drivers: AdminDriver[];
+  pickup_points: PickupPoint[];
   bookings: AdminBooking[];
   parcels: AdminParcel[];
 };
 
-export type AdminTable = 'routes' | 'departures' | 'vehicles' | 'drivers';
+export type AdminTable = 'routes' | 'departures' | 'vehicles' | 'drivers' | 'pickup_points';
 
 export function errorText(err: unknown): string {
   return err instanceof Error ? err.message : 'Something went wrong. Please try again.';

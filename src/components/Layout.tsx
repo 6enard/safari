@@ -118,7 +118,7 @@ export function Footer() {
           </span>
           <span className="font-bold text-slate-700">South Rift Luxury Shuttle</span>
         </div>
-        <p>Book matatu seats across Kenya · Demo project</p>
+        <p>Book matatu seats across Kenya</p>
       </div>
     </footer>
   );

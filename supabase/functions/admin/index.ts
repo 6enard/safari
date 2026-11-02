@@ -18,6 +18,7 @@ const TABLE_FIELDS: Record<string, string[]> = {
   departures: ['route_id', 'departure_date', 'departure_time', 'vehicle_id', 'fare', 'amenities'],
   vehicles: ['plate_number', 'vehicle_name', 'driver_id'],
   drivers: ['full_name', 'phone', 'email', 'license_number'],
+  pickup_points: ['route_id', 'name', 'address', 'latitude', 'longitude', 'sort_order'],
 };
 
 const jsonResponse = (body: unknown, status = 200) =>
@@ -70,11 +71,12 @@ Deno.serve(async (req: Request) => {
     const { action, table, id, row } = body;
 
     if (action === 'load') {
-      const [routes, departures, vehicles, drivers, bookings, parcels] = await Promise.all([
+      const [routes, departures, vehicles, drivers, pickupPoints, bookings, parcels] = await Promise.all([
         supabase.from('routes').select('*').order('origin'),
         supabase.from('departures').select('*').order('departure_date').order('departure_time'),
         supabase.from('vehicles').select('*').order('plate_number'),
         supabase.from('drivers').select('*').order('full_name'),
+        supabase.from('pickup_points').select('*').order('sort_order').order('name'),
         supabase
           .from('bookings')
           .select('*, departures(*, routes(*), vehicles(plate_number, vehicle_name))')
@@ -84,13 +86,14 @@ Deno.serve(async (req: Request) => {
           .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time, vehicles(plate_number, vehicle_name))')
           .order('created_at', { ascending: false }),
       ]);
-      const failed = [routes, departures, vehicles, drivers, bookings, parcels].find((r) => r.error);
+      const failed = [routes, departures, vehicles, drivers, pickupPoints, bookings, parcels].find((r) => r.error);
       if (failed?.error) return jsonResponse({ error: failed.error.message }, 500);
       return jsonResponse({
         routes: routes.data,
         departures: departures.data,
         vehicles: vehicles.data,
         drivers: drivers.data,
+        pickup_points: pickupPoints.data,
         bookings: bookings.data,
         parcels: parcels.data,
       });

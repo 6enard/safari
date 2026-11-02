@@ -26,6 +26,16 @@ export type Departure = {
   created_at: string;
 };
 
+export type PickupPoint = {
+  id: string;
+  route_id: string;
+  name: string;
+  address: string | null;
+  latitude: number;
+  longitude: number;
+  sort_order: number;
+};
+
 export type RefundStatus = 'pending' | 'refunded' | 'not_refunded';
 
 export type Booking = {
@@ -165,6 +175,17 @@ export const db = {
       .order('origin');
     if (error) throw new Error(error.message);
     return data as Route[];
+  },
+
+  async listPickupPoints(routeId: string): Promise<PickupPoint[]> {
+    const { data, error } = await supabase
+      .from('pickup_points')
+      .select('id, route_id, name, address, latitude, longitude, sort_order')
+      .eq('route_id', routeId)
+      .order('sort_order')
+      .order('name');
+    if (error) throw new Error(error.message);
+    return data as PickupPoint[];
   },
 
   async listAvailableDates(routeId: string): Promise<string[]> {

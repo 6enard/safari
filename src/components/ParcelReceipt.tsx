@@ -1,4 +1,4 @@
-import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Package, Weight, Tag, User as UserIcon, Phone, Calendar, Clock, Bus } from 'lucide-react';
+import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Package, Weight, Tag, User as UserIcon, Phone, Calendar, Clock, Bus, UserCircle } from 'lucide-react';
 import { PhotoBackdrop } from '@/components/PhotoBackdrop';
 import type { Parcel } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
@@ -20,6 +20,7 @@ type Props = {
 export function ParcelReceipt({ parcel, onDone }: Props) {
   const dep = parcel.departures;
   const vehicle = dep?.vehicles;
+  const driver = vehicle?.drivers;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -89,6 +90,26 @@ export function ParcelReceipt({ parcel, onDone }: Props) {
                   <span className="inline-flex items-center gap-1.5"><Bus className="h-4 w-4" />{vehicle.vehicle_name} · {vehicle.plate_number}</span>
                 )}
               </div>
+              {driver && (
+                <div className="mt-3 border-t border-brand-100 pt-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Driver</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-700">
+                    <span className="inline-flex items-center gap-1.5">
+                      {driver.photo_url ? (
+                        <img src={driver.photo_url} alt="" className="h-7 w-7 rounded-full object-cover" />
+                      ) : (
+                        <UserCircle className="h-4 w-4 text-brand-600" />
+                      )}
+                      {driver.full_name}
+                    </span>
+                    {driver.phone && (
+                      <a href={`tel:${driver.phone.replace(/\s+/g, '')}`} className="inline-flex items-center gap-1.5 font-semibold text-brand-700 hover:underline">
+                        <Phone className="h-4 w-4" /> {driver.phone}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

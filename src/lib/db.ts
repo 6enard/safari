@@ -87,7 +87,7 @@ export type Parcel = {
   created_at: string;
   updated_at: string;
   routes: { id: string; origin: string; destination: string } | null;
-  departures: { id: string; departure_date: string; departure_time: string; vehicles: { plate_number: string; vehicle_name: string } | null } | null;
+  departures: { id: string; departure_date: string; departure_time: string; vehicles: { plate_number: string; vehicle_name: string; drivers: DriverInfo | null } | null } | null;
 };
 
 export type PassengerReview = {

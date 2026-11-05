@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  ArrowLeft, Package, Plus, Trash2, Loader as Loader2, MapPin, Phone, User as UserIcon,
-  Clock, Calendar, PackageCheck, PackageOpen, Truck, X, CircleCheck as CheckCircle2,
-  Weight, Tag, Route as RouteIcon, Bus, Download,
-} from 'lucide-react';
+import { ArrowLeft, Package, Plus, Trash2, Loader as Loader2, MapPin, Phone, User as UserIcon, Clock, Calendar, PackageCheck, PackageOpen, Truck, X, CircleCheck as CheckCircle2, Weight, Tag, Route as RouteIcon, Bus, Download, CircleUser as UserCircle } from 'lucide-react';
 import { db, type Parcel } from '@/lib/db';
 import { formatKes, formatDate, formatDateTime, formatTime } from '@/lib/format';
 import { ParcelSendFlow } from '@/components/ParcelSendFlow';
@@ -225,6 +221,26 @@ export function Parcels({ onBack }: Props) {
                               <span className="inline-flex items-center gap-1.5"><Bus className="h-3.5 w-3.5" />{vehicle.vehicle_name} · {vehicle.plate_number}</span>
                             )}
                           </div>
+                          {vehicle?.drivers && (
+                            <div className="mt-3 border-t border-brand-100 pt-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Driver</p>
+                              <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-700">
+                                <span className="inline-flex items-center gap-1.5">
+                                  {vehicle.drivers.photo_url ? (
+                                    <img src={vehicle.drivers.photo_url} alt="" className="h-6 w-6 rounded-full object-cover" />
+                                  ) : (
+                                    <UserCircle className="h-3.5 w-3.5 text-brand-600" />
+                                  )}
+                                  {vehicle.drivers.full_name}
+                                </span>
+                                {vehicle.drivers.phone && (
+                                  <a href={`tel:${vehicle.drivers.phone.replace(/\s+/g, '')}`} className="inline-flex items-center gap-1.5 font-semibold text-brand-700 hover:underline">
+                                    <Phone className="h-3.5 w-3.5" /> {vehicle.drivers.phone}
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 

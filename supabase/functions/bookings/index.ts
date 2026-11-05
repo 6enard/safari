@@ -274,7 +274,7 @@ Deno.serve(async (req: Request) => {
       if (typeof parcelId !== 'string') return jsonResponse({ error: 'Missing parcel.' }, 400);
       const { data, error } = await supabase
         .from('parcels')
-        .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time, vehicles(plate_number, vehicle_name))')
+        .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time, vehicles(plate_number, vehicle_name, drivers(full_name, phone, photo_url)))')
         .eq('id', parcelId)
         .eq('user_id', userId)
         .maybeSingle();
@@ -286,7 +286,7 @@ Deno.serve(async (req: Request) => {
     if (action === 'myParcels') {
       const { data, error } = await supabase
         .from('parcels')
-        .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time, vehicles(plate_number, vehicle_name))')
+        .select('*, routes(id, origin, destination), departures(id, departure_date, departure_time, vehicles(plate_number, vehicle_name, drivers(full_name, phone, photo_url)))')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) return jsonResponse({ error: error.message }, 500);

@@ -1,5 +1,5 @@
 {
-  "projectId": "72600278",
+  "projectId": "72678987",
   "functions": {
     "admin": {
       "hasChanged": false,
@@ -7,7 +7,7 @@
     },
     "bookings": {
       "hasChanged": false,
-      "hash": "8c5102faa09d07a22af5d849aba5abc5b31812a08ef53644fde8f217c0918a69"
+      "hash": "1380d16a4d065be503fa0a997eeaf9dedc491bf8027d4ecab399c203f8dfa677"
     },
     "profile": {
       "hasChanged": false,

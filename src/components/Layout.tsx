@@ -28,10 +28,7 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParce
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/90 backdrop-blur-xl transition-shadow">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-4 sm:py-3.5">
-        <button type="button" onClick={onGoHome} className="flex min-w-0 items-center gap-2.5 transition-transform hover:scale-[1.02]">
-          <span className="relative inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-500/30">
-            <Bus className="h-5 w-5" />
-          </span>
+        <button type="button" onClick={onGoHome} className="flex min-w-0 items-center transition-transform hover:scale-[1.02]">
           <div className="leading-tight">
             <p className="text-base font-bold tracking-tight text-slate-900">South Rift Luxury Shuttle</p>
             <p className="hidden text-[11px] text-slate-500 sm:block">Luxury matatu booking · Kenya</p>

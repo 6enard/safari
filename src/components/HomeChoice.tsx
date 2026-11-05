@@ -9,7 +9,14 @@ type Props = {
 export function HomeChoice({ onBookTrip, onSendParcel }: Props) {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <div className="relative mb-12 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 px-6 py-14 text-center text-white shadow-2xl shadow-brand-900/30 sm:px-12 sm:py-20">
+      <div className="relative mb-12 overflow-hidden rounded-3xl bg-brand-900 px-6 py-14 text-center text-white shadow-2xl shadow-brand-900/30 sm:px-12 sm:py-20">
+        <img
+          src="/assets/images/OPTION_6_page-0001.jpg"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-600/90 via-brand-700/85 to-brand-900/90" />
         <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-brand-400/30 blur-3xl animate-float" />
         <div className="pointer-events-none absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-brand-300/20 blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
         <div className="pointer-events-none absolute left-1/2 top-0 h-40 w-96 -translate-x-1/2 rounded-full bg-brand-300/10 blur-2xl" />

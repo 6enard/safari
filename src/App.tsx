@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Loader as Loader2 } from 'lucide-react';
 import { Header, Footer } from '@/components/Layout';
+import { MobileBottomNav, type BottomNavView } from '@/components/MobileBottomNav';
 import { Admin } from '@/components/Admin';
 import { MyBookings } from '@/components/MyBookings';
 import { BookingSteps } from '@/components/BookingSteps';
@@ -88,8 +89,17 @@ function App() {
     changeView('home');
   }
 
+  function navigateFromBottomBar(next: BottomNavView) {
+    if (next === 'home') {
+      goHome();
+      return;
+    }
+    if (next === 'booking' && view !== 'booking') startOver();
+    changeView(next);
+  }
+
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 gradient-mesh">
+    <div className={`flex min-h-screen flex-col bg-slate-50 text-slate-900 gradient-mesh ${isSignedIn ? 'pb-24 sm:pb-0' : ''}`}>
       <Header
         onOpenProfile={() => changeView('profile')}
         onOpenBookings={() => changeView('bookings')}
@@ -174,6 +184,7 @@ function App() {
         )}
       </main>
       <Footer />
+      {!authLoading && user && <MobileBottomNav activeView={view} onNavigate={navigateFromBottomBar} />}
       {user && <DepartureReminders />}
     </div>
   );

@@ -20,7 +20,7 @@ export function SignInGate() {
         src="/assets/images/OPTION_6_page-0001.jpg"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 h-full w-full object-cover object-center scale-105 opacity-35 blur-[2px]"
+        className="pointer-events-none fixed inset-0 h-full w-full object-cover object-center scale-105 opacity-50 blur-[2px]"
       />
       {/* Overlay for readability */}
       <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-white/90 via-white/80 to-white/90" />

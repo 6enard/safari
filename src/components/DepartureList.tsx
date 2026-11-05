@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowDown, Bus, Clock, Loader as Loader2, Wifi, Snowflake, Zap, Coffee, Calendar, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { PhotoBackdrop } from '@/components/PhotoBackdrop';
 import { db, type Route, type Departure } from '@/lib/db';
 import { formatTime, toISO, isDeparturePast } from '@/lib/format';
 
@@ -123,7 +124,8 @@ export function DepartureList({ route, onBack, onSelectDeparture }: Props) {
         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> All routes
       </button>
 
-      <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-6 text-white shadow-xl shadow-brand-900/20 animate-slide-up">
+      <div className="relative mb-8 overflow-hidden rounded-2xl bg-brand-800 p-6 text-white shadow-xl shadow-brand-900/20 animate-slide-up">
+        <PhotoBackdrop />
         <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
         <div className="pointer-events-none absolute -bottom-10 left-10 h-32 w-32 rounded-full bg-brand-300/15 blur-2xl" />
         <div className="relative flex items-center gap-2 text-lg font-bold sm:text-2xl">

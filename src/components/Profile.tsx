@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { updateProfile } from 'firebase/auth';
 import { ArrowLeft, Mail, Calendar, User as UserIcon, Pencil, Loader as Loader2, Check, X, Camera } from 'lucide-react';
+import { PhotoBackdrop } from '@/components/PhotoBackdrop';
 import { EmailVerification } from '@/components/EmailVerification';
 import { useAuth } from '@/lib/authContext';
 import { auth } from '@/lib/firebase';
@@ -101,7 +102,8 @@ export function Profile({ onBack }: Props) {
         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> Back to booking
       </button>
 
-      <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-6 text-white shadow-xl shadow-brand-900/20 animate-slide-up sm:p-8">
+      <div className="relative mb-8 overflow-hidden rounded-2xl bg-brand-800 p-6 text-white shadow-xl shadow-brand-900/20 animate-slide-up sm:p-8">
+        <PhotoBackdrop />
         <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
         <div className="relative flex items-center gap-5">
           <button

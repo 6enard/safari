@@ -15,15 +15,17 @@ export function SignInGate() {
 
   return (
     <div className="relative isolate overflow-hidden">
-      <img
-        src="/assets/images/OPTION_6_page-0001.jpg"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.24]"
-      />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-white/75 to-white" />
+      <div className="relative h-56 sm:h-72 md:h-80">
+        <img
+          src="/assets/images/OPTION_6_page-0001.jpg"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none h-full w-full object-cover object-center"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand-900/30 via-transparent to-white" />
+      </div>
 
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
+      <div className="relative -mt-16 mx-auto max-w-4xl px-4 pb-12 sm:-mt-20 sm:pb-16">
         <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">
           <div className="animate-slide-up">
             <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700 ring-1 ring-brand-100">

@@ -8,6 +8,7 @@ import { db, type Departure, type Parcel, type ParcelType, type Route } from '@/
 import { useAuth } from '@/lib/authContext';
 import { formatKes, formatDate, formatTime, toISO, isDeparturePast } from '@/lib/format';
 import { PickupPointsPanel } from '@/components/PickupPointsPanel';
+import { PhotoBackdrop } from '@/components/PhotoBackdrop';
 
 type Props = {
   onDone: (parcel: Parcel) => void;
@@ -306,7 +307,8 @@ export function ParcelSendFlow({ onDone }: Props) {
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> All routes
           </button>
 
-          <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-6 text-white shadow-xl shadow-brand-900/20">
+          <div className="relative mb-8 overflow-hidden rounded-2xl bg-brand-800 p-6 text-white shadow-xl shadow-brand-900/20">
+            <PhotoBackdrop />
             <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
             <div className="relative flex items-center gap-2 text-lg font-bold sm:text-2xl">
               <span>{selectedRoute.origin}</span>

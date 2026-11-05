@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Bus, MapPin, Clock, ArrowRight, TrendingUp, Loader as Loader2, Sparkles, Route as RouteIcon, Gauge } from 'lucide-react';
+import { PhotoBackdrop } from '@/components/PhotoBackdrop';
 import { db, type Route } from '@/lib/db';
 import { formatKes } from '@/lib/format';
 
@@ -52,7 +53,8 @@ export function RouteSelection({ onSelectRoute }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="relative mb-12 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 px-6 py-14 text-center text-white shadow-2xl shadow-brand-900/30 sm:px-12 sm:py-20">
+      <div className="relative mb-12 overflow-hidden rounded-3xl bg-brand-800 px-6 py-14 text-center text-white shadow-2xl shadow-brand-900/30 sm:px-12 sm:py-20">
+        <PhotoBackdrop />
         <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-brand-400/30 blur-3xl animate-float" />
         <div className="pointer-events-none absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-brand-300/20 blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
         <div className="pointer-events-none absolute left-1/2 top-0 h-40 w-96 -translate-x-1/2 rounded-full bg-brand-300/10 blur-2xl" />

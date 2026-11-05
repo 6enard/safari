@@ -1,4 +1,5 @@
 import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Package, Weight, Tag, User as UserIcon, Phone, Calendar, Clock, Bus } from 'lucide-react';
+import { PhotoBackdrop } from '@/components/PhotoBackdrop';
 import type { Parcel } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
 import { downloadParcelReceiptPDF } from '@/lib/pdfReceipt';
@@ -34,7 +35,8 @@ export function ParcelReceipt({ parcel, onDone }: Props) {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-brand-900/10 animate-slide-up animate-delay-300">
-        <div className="relative overflow-hidden bg-gradient-to-r from-brand-600 to-brand-800 px-6 py-5 text-white">
+        <div className="relative overflow-hidden bg-brand-800 px-6 py-5 text-white">
+          <PhotoBackdrop />
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-xl" />
           <div className="relative flex items-center justify-between">
             <div>

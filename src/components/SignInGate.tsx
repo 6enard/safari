@@ -20,10 +20,10 @@ export function SignInGate() {
         src="/assets/images/OPTION_6_page-0001.jpg"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 h-full w-full object-cover object-center"
+        className="pointer-events-none fixed inset-0 h-full w-full object-cover object-center scale-105 blur-sm"
       />
-      {/* Subtle overlay for readability */}
-      <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-white/85 via-white/80 to-white/90" />
+      {/* Overlay for readability */}
+      <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-white/92 via-white/88 to-white/94" />
 
       <div className="relative z-10 mx-auto w-full max-w-4xl px-4 py-12 sm:py-16">
         <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">

@@ -26,7 +26,7 @@ export function Header({ onOpenProfile, onOpenBookings, onOpenAdmin, onOpenParce
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/60 bg-white/90 backdrop-blur-xl transition-shadow">
+    <header className="sticky top-0 z-30 pt-[env(safe-area-inset-top)] border-b border-slate-200/60 bg-white/90 backdrop-blur-xl transition-shadow">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-4 sm:py-3.5">
         <button type="button" onClick={onGoHome} className="flex min-w-0 items-center transition-transform hover:scale-[1.02]">
           <div className="leading-tight">

@@ -4,11 +4,14 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithCredential,
   signInWithPopup,
   updateProfile,
 } from 'firebase/auth';
 import { X, Mail, Lock, User as UserIcon, Loader as Loader2 } from 'lucide-react';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { auth } from '@/lib/firebase';
+import { isNative } from '@/lib/native';
 import { useAuth } from '@/lib/authContext';
 
 type Mode = 'signin' | 'signup' | 'forgot';
@@ -81,11 +84,21 @@ export function AuthDialog({ onClose }: Props) {
     setSubmitting(true);
     setError(null);
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      if (isNative) {
+        // Popups are blocked in app webviews, so use the native Google account picker
+        // and pass the resulting token to the Firebase web SDK.
+        const result = await FirebaseAuthentication.signInWithGoogle({ skipNativeAuth: true });
+        const idToken = result.credential?.idToken;
+        if (!idToken) throw new Error('Google sign-in did not return a token.');
+        await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
+      } else {
+        await signInWithPopup(auth, new GoogleAuthProvider());
+      }
       onClose();
     } catch (err) {
       const code = (err as { code?: string })?.code ?? '';
-      if (!SILENT_ERROR_CODES.has(code)) setError(errorMessage(err));
+      const cancelled = /cancel/i.test(String((err as { message?: string })?.message ?? ''));
+      if (!SILENT_ERROR_CODES.has(code) && !cancelled) setError(errorMessage(err));
       setSubmitting(false);
     }
   }

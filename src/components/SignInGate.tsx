@@ -14,18 +14,18 @@ export function SignInGate() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
-    <div className="relative isolate overflow-hidden">
-      <div className="relative h-56 sm:h-72 md:h-80">
-        <img
-          src="/assets/images/OPTION_6_page-0001.jpg"
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none h-full w-full object-cover object-center"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand-900/30 via-transparent to-white" />
-      </div>
+    <div className="relative isolate flex min-h-screen flex-col justify-center overflow-hidden">
+      {/* Full-page background image */}
+      <img
+        src="/assets/images/OPTION_6_page-0001.jpg"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 h-full w-full object-cover object-center"
+      />
+      {/* Subtle overlay for readability */}
+      <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-white/85 via-white/80 to-white/90" />
 
-      <div className="relative -mt-16 mx-auto max-w-4xl px-4 pb-12 sm:-mt-20 sm:pb-16">
+      <div className="relative z-10 mx-auto w-full max-w-4xl px-4 py-12 sm:py-16">
         <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">
           <div className="animate-slide-up">
             <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700 ring-1 ring-brand-100">
@@ -34,7 +34,7 @@ export function SignInGate() {
             <h1 className="mt-4 text-3xl font-bold leading-tight text-slate-900 sm:text-4xl">
               Sign in to book your trip
             </h1>
-            <p className="mt-3 max-w-md text-slate-600">
+            <p className="mt-3 max-w-md text-slate-700">
               Your bookings and receipts stay tied to your account, so you can find them anytime.
             </p>
             <button
@@ -52,7 +52,7 @@ export function SignInGate() {
               return (
                 <li
                   key={step.title}
-                  className="flex items-start gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm"
+                  className="flex items-start gap-4 rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-sm"
                 >
                   <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/30">
                     <Icon className="h-5 w-5" />

@@ -23,7 +23,7 @@ export function SignInGate() {
         className="pointer-events-none fixed inset-0 h-full w-full object-cover object-center scale-105 opacity-50 blur-[2px]"
       />
       {/* Overlay for readability */}
-      <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-white/90 via-white/80 to-white/90" />
+      <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-white/80 via-white/70 to-white/80" />
 
       <div className="relative z-10 mx-auto w-full max-w-4xl px-4 py-12 sm:py-16">
         <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">

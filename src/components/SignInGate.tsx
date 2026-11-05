@@ -19,9 +19,9 @@ export function SignInGate() {
         src="/assets/images/OPTION_6_page-0001.jpg"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.14]"
+        className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.24]"
       />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-white/85 to-white" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-white/75 to-white" />
 
       <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
         <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">

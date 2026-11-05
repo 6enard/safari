@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Clock, Calendar, Bus, Armchair, Phone, Smartphone, Loader as Loader2 } from 'lucide-react';
+import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Clock, Calendar, Bus, Armchair, Phone, Smartphone, Loader as Loader2, ArrowRight } from 'lucide-react';
 import { PhotoBackdrop } from '@/components/PhotoBackdrop';
 import { db, type Booking, type Departure, type Route } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
@@ -80,44 +80,49 @@ export function Receipt({ paymentRef, onDone }: Props) {
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-brand-900/10 animate-slide-up animate-delay-300">
-        <div className="relative overflow-hidden bg-brand-800 px-6 py-5 text-white">
+      <div className="overflow-hidden rounded-3xl bg-white shadow-xl shadow-brand-900/10 ring-1 ring-brand-100 animate-slide-up animate-delay-300">
+        <div className="relative overflow-hidden bg-brand-800 px-6 pb-8 pt-6 text-white sm:px-8">
           <PhotoBackdrop />
-          <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-xl" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-brand-100">Receipt No.</p>
-              <p className="font-mono text-lg font-bold">{paymentRef}</p>
+          <div className="relative flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25">
+                <Bus className="h-5 w-5" />
+              </span>
+              <span className="text-sm font-semibold tracking-wide">South Rift Luxury Shuttle</span>
             </div>
-            <Bus className="h-8 w-8 opacity-80" />
+            <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold ring-1 ring-white/25">
+              Confirmed
+            </span>
+          </div>
+
+          <div className="relative mt-8 grid grid-cols-[1fr_auto_1fr] items-end gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-100">From</p>
+              <p className="mt-1 truncate font-display text-xl font-bold sm:text-2xl">{route.origin}</p>
+            </div>
+            <ArrowRight className="mb-2 h-5 w-5 text-brand-100" />
+            <div className="min-w-0 text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-100">To</p>
+              <p className="mt-1 truncate font-display text-xl font-bold sm:text-2xl">{route.destination}</p>
+            </div>
+          </div>
+
+          <div className="relative mt-6 flex items-center justify-between border-t border-white/15 pt-4 text-sm">
+            <span className="text-brand-100">Receipt No.</span>
+            <span className="font-mono font-semibold tracking-wider">{paymentRef}</span>
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field icon={<MapPin className="h-4 w-4" />} label="Route">
-              {route.origin} - {route.destination}
-            </Field>
-            <Field icon={<Bus className="h-4 w-4" />} label="Vehicle">
-              {departure.vehicle_name} ({departure.plate_number})
-            </Field>
+        <div className="px-6 py-6 sm:px-8">
+          <div className="grid gap-5 sm:grid-cols-2">
             <Field icon={<Calendar className="h-4 w-4" />} label="Date">
               {formatDate(departure.departure_date)}
             </Field>
             <Field icon={<Clock className="h-4 w-4" />} label="Departure">
               {formatTime(departure.departure_time)}
             </Field>
-            <Field icon={<Armchair className="h-4 w-4" />} label={bookings.length > 1 ? 'Seats' : 'Seat'}>
-              <span className="flex flex-wrap gap-1.5">
-                {bookings.map((b) => (
-                  <span
-                    key={b.id}
-                    className={`inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 text-xs font-bold ${b.status === 'cancelled' ? 'bg-red-50 text-red-700 line-through ring-1 ring-red-200' : 'bg-brand-100 text-brand-700'}`}
-                  >
-                    {b.seat_number}
-                  </span>
-                ))}
-              </span>
+            <Field icon={<Bus className="h-4 w-4" />} label="Matatu">
+              {departure.vehicle_name} ({departure.plate_number})
             </Field>
             <Field icon={<Smartphone className="h-4 w-4" />} label="Payment">
               {bookings[0].payment_method}
@@ -130,23 +135,37 @@ export function Receipt({ paymentRef, onDone }: Props) {
             </Field>
           </div>
 
-          <div className="mt-6 rounded-xl bg-gradient-to-r from-brand-50 to-brand-100 p-4 ring-1 ring-brand-100">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-600">
-                {bookings.length} {bookings.length === 1 ? 'seat' : 'seats'} × {formatKes(departure.fare)}
-              </span>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-sm">
-              <span className="font-semibold text-slate-700">Amount paid</span>
-              <span className="text-lg font-bold text-brand-700">{formatKes(totalFare)}</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-              <span>Booked on</span>
-              <span>{formatDateTime(bookings[0].created_at)}</span>
+          <div className="mt-6">
+            <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <Armchair className="h-3.5 w-3.5 text-brand-600" />
+              {bookings.length > 1 ? 'Seats' : 'Seat'}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {bookings.map((b) => (
+                <span
+                  key={b.id}
+                  className={`inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2.5 text-sm font-bold ${b.status === 'cancelled' ? 'bg-red-50 text-red-700 line-through ring-1 ring-red-200' : 'bg-brand-100 text-brand-700 ring-1 ring-brand-200'}`}
+                >
+                  {b.seat_number}
+                </span>
+              ))}
             </div>
           </div>
 
-          <div className="my-6 border-t-2 border-dashed border-slate-200" />
+          <div className="mt-6 rounded-2xl bg-brand-50 p-5 ring-1 ring-brand-100">
+            <div className="flex items-center justify-between text-sm text-slate-600">
+              <span>
+                {bookings.length} {bookings.length === 1 ? 'seat' : 'seats'} × {formatKes(departure.fare)}
+              </span>
+              <span>{formatDateTime(bookings[0].created_at)}</span>
+            </div>
+            <div className="mt-3 flex items-end justify-between border-t border-brand-100 pt-3">
+              <span className="text-sm font-semibold uppercase tracking-wide text-brand-800">Amount paid</span>
+              <span className="font-display text-2xl font-bold text-brand-700">{formatKes(totalFare)}</span>
+            </div>
+          </div>
+
+          <div className="my-6 border-t border-dashed border-brand-200" />
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <button

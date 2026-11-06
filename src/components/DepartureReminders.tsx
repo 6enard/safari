@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { computeDueReminders, loadSentReminderIds, markRemindersSent, type DueReminder } from '@/lib/departureReminders';
 import { formatDate, formatTime } from '@/lib/format';
 import { playReminderChime, unlockReminderSound } from '@/lib/reminderSound';
+import { clearTripNotifications, syncTripNotifications } from '@/lib/tripNotifications';
 
 const CHECK_INTERVAL_MS = 60_000;
 
@@ -32,6 +33,7 @@ export function DepartureReminders() {
       try {
         const groups = await db.listBookingsForUser();
         if (cancelled) return;
+        void syncTripNotifications(groups);
         const sent = loadSentReminderIds();
         const due = computeDueReminders(groups, new Date(), sent);
         if (due.length === 0) return;
@@ -44,12 +46,20 @@ export function DepartureReminders() {
     }
 
     window.addEventListener('pointerdown', unlockReminderSound, { once: true });
+    function onVisible() {
+      if (document.visibilityState === 'visible') check();
+    }
+
     check();
     const timer = window.setInterval(check, CHECK_INTERVAL_MS);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('pointerdown', unlockReminderSound);
+      // This component only mounts while signed in, so unmounting means sign-out.
+      void clearTripNotifications();
     };
   }, []);
 

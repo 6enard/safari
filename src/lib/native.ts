@@ -34,10 +34,20 @@ export async function initNative() {
     window.location.hash = '#/bookings';
   });
 
-  // Give the first paint a moment, then hide the splash screen.
+  // Safety net: never leave the splash on screen if the app fails to signal it is ready.
   setTimeout(() => {
-    void SplashScreen.hide();
-  }, 600);
+    void hideSplash();
+  }, 6000);
+}
+
+/** Hide the native splash screen (call once the first screen has rendered). */
+export async function hideSplash() {
+  if (!isNative) return;
+  try {
+    await SplashScreen.hide({ fadeOutDuration: 250 });
+  } catch {
+    /* already hidden */
+  }
 }
 
 /**

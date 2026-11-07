@@ -4,7 +4,6 @@ import { db, type Parcel } from '@/lib/db';
 import { formatKes, formatDate, formatDateTime, formatTime } from '@/lib/format';
 import { ParcelSendFlow } from '@/components/ParcelSendFlow';
 import { ParcelReceipt } from '@/components/ParcelReceipt';
-import { downloadParcelReceiptPDF } from '@/lib/pdfReceipt';
 
 type Props = {
   onBack: () => void;
@@ -256,7 +255,7 @@ export function Parcels({ onBack }: Props) {
                       <p className="text-lg font-bold text-brand-700">{formatKes(p.fee)}</p>
                       <button
                         type="button"
-                        onClick={() => downloadParcelReceiptPDF({ parcel: p })}
+                        onClick={() => void import('@/lib/pdfReceipt').then((m) => m.downloadParcelReceiptPDF({ parcel: p }))}
                         className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100"
                       >
                         <Download className="h-3.5 w-3.5" /> Receipt

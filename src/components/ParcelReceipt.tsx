@@ -2,7 +2,6 @@ import { CircleCheck as CheckCircle2, Download, Chrome as Home, MapPin, Package,
 import { PhotoBackdrop } from '@/components/PhotoBackdrop';
 import type { Parcel } from '@/lib/db';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
-import { downloadParcelReceiptPDF } from '@/lib/pdfReceipt';
 
 const PARCEL_TYPE_LABELS: Record<string, string> = {
   document: 'Documents',
@@ -128,7 +127,7 @@ export function ParcelReceipt({ parcel, onDone }: Props) {
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
-              onClick={() => downloadParcelReceiptPDF({ parcel })}
+              onClick={() => void import('@/lib/pdfReceipt').then((m) => m.downloadParcelReceiptPDF({ parcel }))}
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-[0.98]"
             >
               <Download className="h-4 w-4" /> Download PDF receipt

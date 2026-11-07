@@ -1,24 +1,26 @@
-import { useEffect, useState } from 'react';
-import { Loader as Loader2 } from 'lucide-react';
+import { Suspense, lazy, useEffect, useState } from 'react';
+import { AppLoader } from '@/components/AppLoader';
 import { Header, Footer } from '@/components/Layout';
 import { MobileBottomNav, type BottomNavView } from '@/components/MobileBottomNav';
-import { Admin } from '@/components/Admin';
-import { MyBookings } from '@/components/MyBookings';
 import { BookingSteps } from '@/components/BookingSteps';
 import { SignInGate } from '@/components/SignInGate';
 import { HomeChoice } from '@/components/HomeChoice';
-import { Profile } from '@/components/Profile';
 import { RouteSelection } from '@/components/RouteSelection';
 import { DepartureList } from '@/components/DepartureList';
 import { SeatSelection } from '@/components/SeatSelection';
 import { Payment } from '@/components/Payment';
 import { Receipt } from '@/components/Receipt';
-import { Parcels } from '@/components/Parcels';
-import { Help } from '@/components/Help';
 import { DepartureReminders } from '@/components/DepartureReminders';
 import { useAuth } from '@/lib/authContext';
 import { isAdminEmail } from '@/lib/adminApi';
+import { hideSplash } from '@/lib/native';
 import type { Route, Departure } from '@/lib/db';
+
+const Admin = lazy(() => import('@/components/Admin').then((m) => ({ default: m.Admin })));
+const MyBookings = lazy(() => import('@/components/MyBookings').then((m) => ({ default: m.MyBookings })));
+const Parcels = lazy(() => import('@/components/Parcels').then((m) => ({ default: m.Parcels })));
+const Help = lazy(() => import('@/components/Help').then((m) => ({ default: m.Help })));
+const Profile = lazy(() => import('@/components/Profile').then((m) => ({ default: m.Profile })));
 
 type Step = 'routes' | 'departures' | 'seats' | 'payment' | 'receipt';
 type View = 'home' | 'booking' | 'profile' | 'bookings' | 'admin' | 'parcels' | 'help';
@@ -98,6 +100,13 @@ function App() {
     changeView(next);
   }
 
+  // Hand over from the native splash to the in-app loader once the first frame is ready.
+  useEffect(() => {
+    void hideSplash();
+  }, []);
+
+  if (authLoading) return <AppLoader />;
+
   return (
     <div className={`flex min-h-screen flex-col bg-slate-50 text-slate-900 gradient-mesh ${isSignedIn ? 'pb-24 sm:pb-0' : ''}`}>
       <Header
@@ -109,11 +118,7 @@ function App() {
         onGoHome={() => changeView('home')}
       />
       <main className="flex-1">
-        {authLoading && (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-10 w-10 animate-spin text-brand-500" />
-          </div>
-        )}
+        <Suspense fallback={<AppLoader inline />}>
         {!authLoading && !user && <SignInGate />}
         {!authLoading && user && view === 'profile' && <Profile onBack={() => changeView('home')} />}
         {!authLoading && user && view === 'bookings' && <MyBookings onBack={() => changeView('home')} />}
@@ -182,6 +187,7 @@ function App() {
             )}
           </>
         )}
+        </Suspense>
       </main>
       <Footer />
       {!authLoading && user && <MobileBottomNav activeView={view} onNavigate={navigateFromBottomBar} />}

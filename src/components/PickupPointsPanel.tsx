@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Loader as Loader2, MapPin } from 'lucide-react';
 import { db, type PickupPoint } from '@/lib/db';
-import { PickupMap } from '@/components/PickupMap';
+
+const PickupMap = lazy(() => import('@/components/PickupMap').then((m) => ({ default: m.PickupMap })));
 
 type Props = {
   routeId: string;
@@ -58,7 +59,9 @@ export function PickupPointsPanel({ routeId }: Props) {
 
       {!error && points && points.length > 0 && (
         <div>
-          <PickupMap markers={markers} fitKey={routeId} className="h-64 w-full sm:h-80" />
+          <Suspense fallback={<div className="h-64 w-full animate-pulse bg-slate-100 sm:h-80" />}>
+            <PickupMap markers={markers} fitKey={routeId} className="h-64 w-full sm:h-80" />
+          </Suspense>
           <ol className="divide-y divide-slate-100">
             {points.map((p, idx) => (
               <li key={p.id} className="flex items-start gap-4 px-6 py-4">

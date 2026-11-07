@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "826971177135-bpg7rb5vn1nucmqfbbnmtlvm1kq5cbih.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.southrift.shuttle",
+            "certificate_hash": "931e71fe4e30420d676e051f611dd7f1c42d0bda"
+          }
+        },
+        {
           "client_id": "826971177135-je948diuk0fcdrttsprbsvm4j2vuouel.apps.googleusercontent.com",
           "client_type": 3
         }

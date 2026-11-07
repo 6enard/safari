@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import type { Booking, Departure, Route, Parcel } from '@/lib/db';
+import { savePdf } from '@/lib/native';
 import { formatKes, formatDate, formatTime, formatDateTime } from '@/lib/format';
 
 const BRAND_NAME = 'South Rift Luxury Shuttle';
@@ -100,7 +101,7 @@ function drawAmountBox(doc: jsPDF, y: number, caption: string, label: string, am
   doc.text(amount, pageWidth - MARGIN - 16, y + 60, { align: 'right' });
 }
 
-export function downloadReceiptPDF(opts: {
+export async function downloadReceiptPDF(opts: {
   bookings: Booking[];
   departure: Departure;
   route: Route;
@@ -148,10 +149,10 @@ export function downloadReceiptPDF(opts: {
 
   drawFooter(doc, `Show this receipt to the conductor before boarding. ${BRAND_NAME}.`);
 
-  doc.save(`receipt-${paymentRef}.pdf`);
+  await savePdf(doc, `receipt-${paymentRef}.pdf`);
 }
 
-export function downloadParcelReceiptPDF(opts: {
+export async function downloadParcelReceiptPDF(opts: {
   parcel: Parcel;
 }) {
   const { parcel } = opts;
@@ -191,5 +192,5 @@ export function downloadParcelReceiptPDF(opts: {
 
   drawFooter(doc, `Keep this receipt to track and collect your parcel. ${BRAND_NAME}.`);
 
-  doc.save(`parcel-${parcel.tracking_number}.pdf`);
+  await savePdf(doc, `parcel-${parcel.tracking_number}.pdf`);
 }

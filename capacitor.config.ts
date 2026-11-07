@@ -22,11 +22,16 @@ const config: CapacitorConfig = {
     },
   },
   plugins: {
+    LocalNotifications: { smallIcon: 'ic_stat_notify', iconColor: '#3F72AF' },
     SplashScreen: {
       launchShowDuration: 1200,
       launchAutoHide: false,
       backgroundColor: '#112d4e',
       showSpinner: false,
+    },
+     LocalNotifications: {
+      smallIcon: 'ic_stat_notify',
+      iconColor: '#3F72AF',
     },
     StatusBar: {
       style: 'LIGHT',

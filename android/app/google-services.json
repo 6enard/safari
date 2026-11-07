@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "826971177135",
+    "project_id": "safari-196fc",
+    "storage_bucket": "safari-196fc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:826971177135:android:11da7fe869a57dcff3d45a",
+        "android_client_info": {
+          "package_name": "com.southrift.shuttle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "826971177135-je948diuk0fcdrttsprbsvm4j2vuouel.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjZc6N6SUsgTklpmXK6UKlcR31MX5rWaE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "826971177135-je948diuk0fcdrttsprbsvm4j2vuouel.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
